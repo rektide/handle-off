@@ -1,44 +1,30 @@
-# prefork-rs Code Review
+# clid Code Review
 
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        pfc (Client)                              │
-│  CLI Parser → ExecutionContext → sendfd Transfer                │
+│                     clid-client (Client)                         │
+│  ExecutionContext → rkyv serialize → sendfd Transfer            │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ Unix Datagram + FDs
                            ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                        pfd (Daemon)                              │
-│  Unix Socket Receiver → rkyv Deserialize → CmdRegistry → add   │
+│                     clid-daemon (Daemon)                         │
+│  Unix Socket Receiver → rkyv Deserialize → CmdRegistry dispatch │
 └─────────────────────────────────────────────────────────────────┘
                            │
-              ┌────────────┴────────────┐
-              ▼                         ▼
-        discovery/                  context/
-   (socket discovery)         (ExecutionContext)
+              ┌────────────┴────────────┬──────────────┐
+              ▼                         ▼              ▼
+     clid-discovery            clid-context      clid-client
+  (socket discovery)      (ExecutionContext)   (send helpers)
 ```
 
 ---
 
 ## Critical Issues
 
-### 1. Duplicate Code in xdg_runtime_create.rs
-
-**File:** `discovery/src/xdg_runtime_create.rs`
-
-The file contains duplicate impl blocks (lines 6-45 vs 66-98):
-- Duplicate `impl Default`
-- Duplicate `impl XdgRuntimeCreateStrategy`
-- Duplicate `impl CreateStrategy`
-- Duplicate `#[cfg(test)]` module
-
-The second half references `UserDirs::new()` without importing it. This either won't compile or has dead code.
-
-**Fix:** Remove the duplicate block (lines 66-117) and keep the first implementation using `XDG_RUNTIME_DIR` env var.
-
-### 2. Wildcard Dependency Versions
+### 1. Wildcard Dependency Versions
 
 **File:** `Cargo.toml` (lines 12-21)
 
@@ -53,9 +39,9 @@ Using `*` breaks reproducibility and can pull semver-incompatible changes.
 
 **Fix:** Pin specific versions in workspace dependencies.
 
-### 3. Daemon Receive Loop Anti-Pattern
+### 2. Daemon Receive Loop Anti-Pattern
 
-**File:** `pfd/src/lib.rs` (lines 131-176)
+**File:** `clid-daemon/src/lib.rs`
 
 Current implementation uses:
 - `spawn_blocking` per packet
@@ -97,42 +83,9 @@ This creates unnecessary tasks, lock contention, and CPU spin.
 
 ## Code Quality Issues
 
-### CmdRegistry Cloning
-
-**File:** `pfd/src/lib.rs` (lines 48-52, 154)
-
-```rust
-fn clone_ref(&self) -> Self {
-    Self {
-        commands: self.commands.clone(),
-    }
-}
-```
-
-This clones the entire `HashMap` on each request. Values are `Arc` but map clone still allocates.
-
-**Fix:** Use `Arc<CmdRegistry>` and clone the Arc instead.
-
-### Verbose Flag Not Wired
-
-**File:** `pfd/src/main.rs` (lines 12-14, 18-21)
-
-The `--verbose` flag exists but isn't used—filtering always uses `EnvFilter::from_default_env()`.
-
-### XDG Strategies Not Integrated
-
-**File:** `discovery/src/lib.rs` (lines 136-157)
-
-`discover_socket()` only uses:
-1. CLI argument
-2. `PFD_SOCKET` env var
-3. `LocalFileStrategy`
-
-It never consults `XdgRuntimeStrategy`, contrary to README claims.
-
 ### FD Handling
 
-**File:** `pfd/src/lib.rs` (lines 72-73, 88-90, 101-103)
+**File:** `clid-daemon/src/lib.rs`
 
 Repeated `unsafe` conversions: `OwnedFd → raw → File::from_raw_fd`.
 
@@ -140,23 +93,9 @@ Repeated `unsafe` conversions: `OwnedFd → raw → File::from_raw_fd`.
 
 ### Client Blocking in Async
 
-**File:** `pfc/src/lib.rs` (lines 49)
+**File:** `clid-client/src/lib.rs`
 
 `send_with_fd` is synchronous but called in async context. Can block runtime thread in pathological conditions.
-
----
-
-## Missing README TODOs
-
-From README.md "Todo" section, not yet implemented:
-
-| Feature | Status |
-|---------|--------|
-| Auto-launch daemon (`--create/-C`) | Missing |
-| Discovery via pidfile in XDG locations | Missing |
-| XDG++ app-name support (`${XDG_RUNTIME_DIR}/pfd.<app>.sock`) | Missing |
-| `sd-notify` support on descriptor 4 | Missing |
-| Miniaturize client | Client pulls clap, tracing, serde_json |
 
 ---
 
@@ -164,7 +103,7 @@ From README.md "Todo" section, not yet implemented:
 
 ### Meaningless Tests
 
-**File:** `discovery/src/xdg_runtime.rs` (lines 42-52)
+**File:** `clid-discovery/src/xdg_runtime.rs`
 
 ```rust
 assert!(result.is_none() || result.is_some());  // Always true
@@ -188,36 +127,27 @@ Environment variable tests use `unsafe set_var/remove_var` which can race in par
 
 ### Inconsistent Workspace Usage
 
-| Crate | Uses workspace deps? |
-|-------|---------------------|
-| pfc | Yes |
-| pfd | No (pins explicit versions) |
-| discovery | Yes |
-| context | No (pins explicit versions) |
+`clid-context` pins its own dependency versions instead of using workspace deps.
 
-**Fix:** Use `dep.workspace = true` consistently in all member crates.
+**Fix:** Use `dep.workspace = true` consistently.
 
 ---
 
 ## Recommended Fixes by Effort
 
-### Small (< 1 hour)
+### Small
 
-- [ ] Delete duplicate code in `xdg_runtime_create.rs` (lines 66-117)
 - [ ] Pin dependency versions (remove `*`)
-- [ ] Wire verbose flag in pfd
 - [ ] Fix meaningless tests
-- [ ] Normalize workspace dependency usage
+- [ ] Normalize workspace dependency usage in clid-context
 
-### Medium (1-3 hours)
+### Medium
 
 - [ ] Replace daemon receive loop with `AsyncFd`
 - [ ] Safe socket cleanup (verify file is socket before removal)
-- [ ] Integrate XDG discovery strategies into `discover_socket()`
 - [ ] Add payload size checks + protocol header (magic bytes, version, length)
-- [ ] Use `Arc<CmdRegistry>` instead of cloning
 
-### Large (1-2 days)
+### Large
 
 - [ ] End-to-end integration tests with real FD transfer
 - [ ] Authentication / peer credential checking
@@ -228,7 +158,7 @@ Environment variable tests use `unsafe set_var/remove_var` which can race in par
 
 ## Risks and Guardrails
 
-1. **If pfd ever runs with higher privileges**, current model is privilege-escalation risk
+1. **If daemon ever runs with higher privileges**, current model is privilege-escalation risk
    - Keep same-UID only via private runtime dir + strict perms
    - Reject requests unless peer UID matches
    - Do not implement "execute arbitrary command" without allowlist
