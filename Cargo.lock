@@ -165,7 +165,7 @@ checksum = "c3e64b0cc0439b12df2fa678eae89a1c56a529fd067a9115f7827f1fffd22b32"
 
 [[package]]
 name = "clid"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clid-client",
  "clid-context",
@@ -175,7 +175,7 @@ dependencies = [
 
 [[package]]
 name = "clid-client"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clid-context",
@@ -187,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "clid-context"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "bytecheck",
@@ -196,7 +196,7 @@ dependencies = [
 
 [[package]]
 name = "clid-daemon"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clid-context",
@@ -210,7 +210,7 @@ dependencies = [
 
 [[package]]
 name = "clid-discovery"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "directories",
@@ -219,7 +219,7 @@ dependencies = [
 
 [[package]]
 name = "clidc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "clidd"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "clap",
