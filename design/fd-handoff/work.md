@@ -175,5 +175,16 @@ notification-size mismatch with the manager's 4096-byte receive buffer; correcti
 clippy/formatting and strict workspace rustdoc passed. Notification work is closed;
 the [custody report](../../doc/systemd/custody0.glm53max.md) and README landed
 `582fbae4`, preserving G's authorship and Sol's completion provenance. The independently optional manager-inspection
-adapter is being implemented to complete verified acceptance support. Manager
-generation coordination and application session completion remain later layers.
+adapter landed as `420c5b76`; its
+[inspection report](../../doc/systemd/inspection0.gpt61s.md) landed `5eeb17e7`.
+It verifies named kernel-metadata matches and observes manager capacity and
+incarnation, with explicit limits: not OFD/access-mode proof and not a cross-step
+incarnation pin. Read-only live snapshots succeeded on user manager 262-1; no
+live store/remove mutation was performed.
+
+Review found dump-entry limits were applied after full JSON allocation. Correction
+`00550c3b` uses a bounded typed visitor and rejects excess rows before decoding
+fields; 11 targeted tests plus clippy/format passed. Focused review confirmed
+the finding resolved with no new issues; E3.2 is closed. Manager generation coordination and application
+session completion remain later layers; the coordinator interface is being
+planned around these actual evidence and ownership limits.

@@ -28,6 +28,8 @@ sources:
   named-descriptor adoption, explicit ownership boundary, and reviewed parser fix.
 - [Systemd custody report](../../doc/systemd/custody0.glm53max.md): notification,
   borrowed storage offers, removal, barrier ordering, and acceptance boundaries.
+- [Manager inspection report](../../doc/systemd/inspection0.gpt61s.md): optional
+  bounded queries, named metadata verification, and incarnation/identity limits.
 - [Rendezvous report](../../doc/rendezvous/implementation0.glm53max.md): pure
   endpoint resolution and sample policy, with collision-free flat naming.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
