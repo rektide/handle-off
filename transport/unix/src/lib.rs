@@ -11,7 +11,7 @@
 //! accepted=2, rejected=3), zero reserved byte, LE u64 offer ID, LE u16 generation
 //! byte length, LE u16 FD count, LE u32 body length, then UTF-8 generation and body.
 //! Offers contain one checked rkyv manifest; ancillary slot i is exactly
-//! manifest.resources[i]. ACK/NACK carry neither body nor FDs. Resource order is
+//! manifest.resources\[i\]. ACK/NACK carry neither body nor FDs. Resource order is
 //! only a delivery binding, not FD/OFD identity. Duplicate resource IDs are invalid;
 //! aliases use repeated member references to the same resource ID instead.
 //!

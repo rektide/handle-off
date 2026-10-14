@@ -3,7 +3,7 @@ use std::{ffi::OsString, io, path::PathBuf};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Invocation {
-    /// Includes argv[0] when present. An explicit invocation may have no arguments.
+    /// Includes argv\[0\] when present. An explicit invocation may have no arguments.
     pub argv: Vec<OsString>,
     /// A full environment snapshot, not an overlay. May contain credentials.
     pub environment: Vec<(OsString, OsString)>,
