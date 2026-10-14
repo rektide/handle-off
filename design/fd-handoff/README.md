@@ -14,6 +14,8 @@ sources:
 
 ## Proposed architecture
 
+- [Active work map](work.md): native epics, retained legacy tickets, and the
+  authorized implementation starting point.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
   handle/bundle/state vocabulary, cooperative continuity, two proving
   applications, and draft epics/tickets. Current proposal for review.

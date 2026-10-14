@@ -33,7 +33,8 @@ This is a fresh design. The existing clid workspace and deployed bus-proxy are
 evidence and potential implementation sources, not compatibility constraints.
 The project name and direction reflect human decisions in the source session;
 crate names, interfaces, and ticket boundaries below are proposals. No tracker
-entries are created by this document.
+entries were created by the initial draft. The operator subsequently authorized
+implementation and materialization; see [the active work map](work.md).
 
 ## Direction and proving applications
 
@@ -325,9 +326,10 @@ experiments are evidence, not tickets presumed complete in the new toolkit.
    actual shared mechanisms and accidental application coupling.
 5. Select future capabilities by user priorities; retain the basic backlog above.
 
-No implementation is authorized merely by inclusion in this proposal. The next
-review should settle the contract/crate seams, initial sample transport, manifest
-bootstrap conventions, and first ticket set; it need not settle every future API.
+Implementation was subsequently authorized in the source session. The
+[active work map](work.md) records native tickets and the initial dispatch.
+Review the contract/crate seams, sample transport, and manifest bootstrap at
+coherent implementation checkpoints; future APIs remain open.
 
 ## Cross-references and verification
 
