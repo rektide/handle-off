@@ -20,6 +20,8 @@ sources:
   delivered APIs, extraction owners, feature graph, and measured local baseline.
 - [Descriptor transport report](../../doc/transport/rights0.glm53max.md):
   blocking datagram rights API, ownership/truncation behavior, and dependency cost.
+- [Bundle delivery report](../../doc/transport/bundles0.glm53max.md): sample
+  transaction protocol, application acceptance, and multi-image process example.
 - [State carrier report](../../doc/state/carriers0.glm53max.md): independent
   rkyv wire encoding and sealed memfd storage, limits, and composition evidence.
 - [Socket activation report](../../doc/systemd/activation0.glm53max.md): classic

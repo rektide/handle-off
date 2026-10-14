@@ -148,6 +148,17 @@ landed `69c92d84`; E3.1 is closed. The crate supports classic LISTEN_PID/FDS/FDN
 not the newer optional PIDFDID validation. No live-systemd conformance run is
 claimed for the synthetic-manager tests.
 
-E2.3 is in progress: sample direct bundle protocol over already-connected Unix
-datagrams, with bounded manifest/descriptor association and explicit delivery
-acknowledgment distinct from command completion or lifecycle commit.
+### Direct bundle delivery complete
+
+E2.3 landed as `f6349a09`: sample protocol over connected Unix datagrams, bounded
+manifest/descriptor association, and explicit delivery acknowledgment distinct
+from command completion or lifecycle commit. Focused review found no protocol
+blockers. The example's missing generation/bundle-scope extension policy was
+corrected in `2d131eff`; two process tests and targeted clippy/format passed.
+The [bundle delivery report](../../doc/transport/bundles0.glm53max.md) and README
+landed as `60685ebc`; E2.3 is closed. The measured raw bundle example was 472,096
+bytes stripped/dynamically linked, not yet a thin-client comparison.
+
+In progress: standalone rendezvous contracts/sample policy (G) and runtime-free
+systemd notification/fdstore primitives (Sol medium). Manager generation
+coordination and application session completion are still later layers.
