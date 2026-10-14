@@ -19,9 +19,10 @@ review in [REVIEW-0.md](REVIEW-0.md) and prior planning in `.transcript/`.
 
 The foundation provides independent resource, bundle, opaque state, invocation,
 and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
-codec, a sealed Linux state-image carrier, and classic socket-activation
-metadata handling. Bundle delivery protocols, fdstore custody, and cooperative
-lifecycle coordination are not implemented yet. The delivery sequence is proposed in
+codec, a sealed Linux state-image carrier, classic socket-activation metadata
+handling, and a sample correlated bundle-delivery protocol. Bundle delivery
+protocols beyond this sample, fdstore custody, and cooperative lifecycle
+coordination are not implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -40,14 +41,16 @@ with the reading map in
 | `handle-off-state-rkyv` (`state/rkyv`) | Checked bounded rkyv wire codec for manifests and state metadata |
 | `handle-off-state-memfd` (`state/memfd`) | Sealed Linux memfd byte images with positional reads |
 | `handle-off-activation` (`systemd/activation`) | Classic LISTEN_* parsing and explicit inherited-FD claiming |
+| `handle-off-transport-unix` (`transport/unix`) | Sample correlated bundle delivery and acceptance over connected datagrams |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
 only `stdio` and `invocation`. Descriptor APIs require Unix. Native invocation
 types and metadata can be used without descriptor operations.
 The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
-rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix.
-None are included in `local`.
+rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
+`transport-unix` composes workspace crates only (no new dependencies). None are
+included in `local`.
 
 ## Local use
 
@@ -147,3 +150,29 @@ sd_notify, or fdstore participates. The crate stays runtime-free with rustix
 as its only dependency. A focused review's P2 names-parser finding (segment
 collection before the count check) is fixed and regression-covered. See the
 [activation checkpoint](doc/systemd/activation0.glm53max.md).
+
+## Bundle delivery
+
+`handle-off-transport-unix` is an optional sample backend, not a universal
+transport: each side supplies a fresh, already-connected datagram socket it
+uses exclusively, with serialized single-flight exchanges and no discovery,
+authentication, or runtime policy. One offer carries a wire-v1 manifest
+plus descriptors — ancillary slot `i` is exactly `manifest.resources[i]`,
+a transient delivery binding, not FD identity. ACK/NACK frames echo the
+offer ID and generation; an explicit accept or reject is the receiver's
+deliberate decision, and acceptance means custody only — never command
+completion, lifecycle commit, authentication, or revocation of the sender's
+originals.
+
+The protocol installs no timeouts (configure the socket first). Any failure
+after an offer submission attempt is conservatively indeterminate: the
+endpoint poisons and never auto-retries, because the datagram may still be
+queued at the peer and resending could deliver the same rights twice. A
+failed ACK returns the accepted delivery to the application for an explicit
+decision. Limits (defaults 16 KiB / 64 FDs / 4096 nodes; ceilings 64 KiB /
+253 / 1M) bound frame, manifest, and ancillary work together. The crate
+depends only on workspace crates — no memfd, no runtime — and the
+[direct-bundles example](examples/direct-bundles/src/main.rs) transfers two
+sealed-memfd bundles between processes, rejecting extensions at scopes it
+does not interpret before accepting. See the
+[bundle delivery checkpoint](doc/transport/bundles0.glm53max.md).
