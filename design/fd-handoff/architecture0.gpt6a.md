@@ -337,8 +337,11 @@ coherent implementation checkpoints; future APIs remain open.
   historical/session provenance, and recorded connected-client preservation.
 - [Research 0](research0.glm53max.md) supplies descriptor/fdstore background;
   its repository-wide absence claims are corrected by Research 1.
-- [Current README](../../README.md) describes the original CLI experiment, which
-  this proposal generalizes; it is not yet the handle-off architecture home.
+- [Current README](../../README.md) introduces the new handle-off workspace.
+  The original CLI sources cited in frontmatter were subsequently retired by
+  `831e2e0f`. Recover the exact pre-retirement tree at `09437c06`, for example
+  `git show 09437c06:clid-client/src/lib.rs`. Their former paths are historical
+  evidence references, not current implementation locations.
 - [Bus-proxy handover contract](file:///usr/local/src/opencode-bus-proxy-git/repo/doc/event-multiplexer/handover.md)
   is the operational evidence for state inventory, current limitations, and
   acceptance verification. It establishes precedent, not implementation here.

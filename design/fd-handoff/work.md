@@ -65,3 +65,16 @@ transfer and manager integration should build on that reviewed foundation.
 The parent owns architectural integration and tracker updates. External
 bus-proxy deployment changes are a later consumer task, not part of workspace
 preparation. Native ticket notes carry implementation reports and session links.
+
+### Workspace preparation landed
+
+FX committed the dependency-free facade scaffold (`75671d87`) and retired the
+old clid packages/examples and stale prefork placeholders (`831e2e0f`). Cargo
+check, clippy, and formatting passed. Sources referenced by the research remain
+recoverable from pre-retirement tree `09437c06`; source paths inside those
+historical reports should be interpreted at that revision.
+
+Sol medium is implementing separate handle, bundle/state, stdio, and invocation
+capabilities plus a local example and feature/dependency baseline. A single
+combined contracts crate was considered during cleanup but not selected: the
+operator's meaningful heavy-decomposition preference remains controlling.
