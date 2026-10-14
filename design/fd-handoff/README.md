@@ -6,6 +6,8 @@ resource: /design/fd-handoff/README.md
 status: draft
 generated: { by: "model:openai/gpt-6-astra", at: 2026-10-14 }
 sources:
+  - resource: "opencode://ses_e9ab1e8adffeMXpHDA7AZzAeRm"
+    title: Linked the remote-resource design wave covering credential URIs, SlateDB, filesystem records and proposed epics
   - resource: "opencode://ses_ec5b335ffffeIyNK21aCZL3jEw"
     title: "Added names-first systemd adoption design and mutable-state steering: application schemas, optional manifests, persistent backing, and completeness choices"
   - resource: "opencode://ses_ec616a6eaffe0I3U3HgN4tJ0Ho"
@@ -56,6 +58,10 @@ sources:
 
 ## Investigations
 
+- [Addressable resources, credentials and local realizations](../remote-resources/draft0.gpt6a.md):
+  extends names-first adoption to URI-addressed resources; proposes tiny
+  credential references, filesystem layouts, SlateDB/RustFS experiments and
+  an epic map toward table formats and local checkouts. Design for discussion.
 - [Named resources and possible futures](naming-opportunities0.gpt6a.md): current
   naming scopes; transcript-grounded opportunities for readable inventories,
   Varlink reporting, persistent datasets, restart assessment, and LUO recovery.
