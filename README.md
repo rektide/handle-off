@@ -9,13 +9,15 @@ sources:
   - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
     title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Maintained custody/rendezvous/inspection exposure and correction evidence, then documented the cooperative handover core
+    title: Maintained custody/rendezvous/inspection exposure, handover boundaries and the partial generation-catalog checkpoint
   - resource: "opencode://ses_ec717edaeffeP56i2EfWqe8r3v"
-    title: Implemented inspection and handover core; reported pinned-nightly, synthetic lifecycle and read-only manager checks
+    title: Implemented inspection, handover core and generation catalogs; reported pinned-nightly, synthetic and read-only manager checks
   - resource: /doc/systemd/inspection0.gpt61s.md
     title: Optional inspection API, bounds, observation limits and attributed verification
   - resource: /doc/handover/core0.gpt61s.md
     title: Backend-free handover bookkeeping, trusted evidence, fail-closed transitions and attributed tests
+  - resource: /doc/systemd/generations0.gpt61s.md
+    title: Bounded generation addresses, borrowed discovery, manifest mapping and upstream deduplication evidence
   - resource: /doc/systemd/custody0.glm53max.md
     title: Notify/fdstore implementation and corrected message-bound verification
   - resource: /rendezvous/local/src/lib.rs
@@ -47,7 +49,8 @@ codec, a sealed Linux state-image carrier, classic socket-activation metadata
 handling, a sample correlated bundle-delivery protocol, service notifications
 with fdstore offers and optional read-only membership inspection, and endpoint
 rendezvous vocabulary with a sample policy. A backend-free cooperative handover
-permission core is implemented; concrete generation custody/control adapters and
+permission core and bounded systemd generation naming/catalog subset are implemented;
+generation publication/retirement, concrete control adapters and
 real application replacement are not yet implemented. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
@@ -74,6 +77,7 @@ with the reading map in
 | `handle-off-rendezvous` (`rendezvous/core`) | Endpoint-resolution contract yielding unverified candidates |
 | `handle-off-rendezvous-local` (`rendezvous/local`) | Sample explicit/environment/XDG/local resolution policy |
 | `handle-off-handover` (`handover/core`) | Cooperative permission bookkeeping with retained evidence and fail-closed quarantine |
+| `handle-off-systemd-generation` (`systemd/generation`) | Bounded transient tags and borrowed non-destructive generation catalogs |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
@@ -85,8 +89,8 @@ rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
 `systemd-inspect` separately adds serde/serde_json/roxmltree, reuses rustix on Linux,
 and requires an external trusted `busctl` executable at query time;
 `transport-unix` and the std-only `rendezvous` crates compose workspace crates
-only. `handover` uses foundation workspace crates only, with no external dependency,
-runtime, codec or backend. None are included in `local`.
+only. `handover` and `systemd-generation` use foundation workspace crates only,
+with no external dependency, runtime, codec or backend. None are included in `local`.
 
 ## Local use
 
@@ -280,3 +284,20 @@ raw receipts/metadata establish safe handover. Approvals are single-issued per
 controller; applications enforce generation/domain redemption, prevent resets
 and police aliases/auto-resuming leases. No real restart is claimed by
 the synthetic core tests. See the [core checkpoint](doc/handover/core0.gpt61s.md).
+
+## Generation catalogs
+
+`handle-off-systemd-generation` supplies fixed-width namespace/generation tokens
+and bounded `ho1.` FDNAME tags for a root, commit marker and resource slots.
+Discovery borrows caller-owned handles, preserves unrelated entries and returns
+all generation candidates without choosing newest, merging or pruning them.
+Manifest mapping validates exact contiguous slot inventory and logical membership;
+declared alias roles share `ResourceId`, never inferred inode equality.
+
+Root/marker presence is **not execution permission**: content linkage, custody,
+incarnation, compatibility and retirement remain future adapter responsibilities.
+Upstream systemd can suppress duplicate resources before assigning their new names;
+missing tags must fail later preparation verification, not be silently repaired.
+This is only the naming/catalog subset of E3.3, with no publication, retirement,
+codec, inspector or RNG dependency. See the
+[generation checkpoint](doc/systemd/generations0.gpt61s.md).
