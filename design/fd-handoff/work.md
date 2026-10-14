@@ -188,3 +188,17 @@ fields; 11 targeted tests plus clippy/format passed. Focused review confirmed
 the finding resolved with no new issues; E3.2 is closed. Manager generation coordination and application
 session completion remain later layers; the coordinator interface is being
 planned around these actual evidence and ownership limits.
+
+### Cooperative authority core complete
+
+E4.1 landed `11b78c3b` and the [core report](../../doc/handover/core0.gpt61s.md)
+and README landed `ed949cce`. Seven new synthetic tests and 96 workspace tests
+passed with pinned-toolchain lint/format/docs/features. Focused adversarial review
+found no substantive safety blockers in publication, abort, relinquishment,
+release, dropped-attempt quarantine, or recovery sequencing. E4.1 is closed.
+
+The contract remains cooperative: evidence is application attestation, and
+applications own domain/generation matching, controller lifetime, real quiescence,
+and aliases outside the controller. These are not OS-enforced execution leases.
+Systemd generation naming/catalog work is in progress; no complete replacement
+adapter or end-to-end restart claim follows from the core alone.

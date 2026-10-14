@@ -32,6 +32,8 @@ sources:
   borrowed storage offers, removal, barrier ordering, and acceptance boundaries.
 - [Manager inspection report](../../doc/systemd/inspection0.gpt61s.md): optional
   bounded queries, named metadata verification, and incarnation/identity limits.
+- [Handover core report](../../doc/handover/core0.gpt61s.md): cooperative authority
+  transitions, retained failures, scoped approvals, and trusted-application limits.
 - [Rendezvous report](../../doc/rendezvous/implementation0.glm53max.md): pure
   endpoint resolution and sample policy, with collision-free flat naming.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
