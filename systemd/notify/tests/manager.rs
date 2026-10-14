@@ -1,5 +1,7 @@
 #![cfg(unix)]
-use handle_off_systemd_notify::{BarrierOutcome, Notifier, NotifySocket, Snapshot, Submission};
+use handle_off_systemd_notify::{
+    BarrierOutcome, MAX_MESSAGE_BYTES, Notifier, NotifySocket, Snapshot, Submission,
+};
 use handle_off_unix_rights::{ReceiveLimits, receive, send};
 use std::{
     ffi::{OsStr, OsString},
@@ -37,8 +39,10 @@ fn cleanup(path: &Path) {
     std::fs::remove_dir(path.parent().unwrap()).unwrap();
 }
 fn limits() -> ReceiveLimits {
+    // Realistic manager buffer: systemd reads into char[NOTIFY_BUFFER_MAX]
+    // (PIPE_BUF, 4096 on Linux) and discards longer datagrams.
     ReceiveLimits {
-        max_payload: 16 * 1024,
+        max_payload: MAX_MESSAGE_BYTES,
         max_fds: 8,
     }
 }
@@ -97,6 +101,44 @@ fn barrier_requires_manager_writer_closure_and_rejects_unexpected_data() {
         io::ErrorKind::InvalidData
     );
     drop(message);
+    cleanup(&path);
+}
+#[test]
+fn message_boundaries_match_the_systemd_notify_buffer() {
+    let (path, manager, notifier) = fake_manager("boundaries");
+    // Exact limit including the STATUS= prefix: accepted and delivered whole.
+    let status = "x".repeat(MAX_MESSAGE_BYTES - "STATUS=".len());
+    assert_eq!(notifier.status(&status).unwrap(), Submission::Submitted);
+    let message = receive(&manager, limits()).unwrap();
+    assert_eq!(message.payload.len(), MAX_MESSAGE_BYTES);
+    assert_eq!(&message.payload[..7], b"STATUS=");
+    assert_eq!(
+        notifier.status(&format!("{status}x")).unwrap_err().kind(),
+        io::ErrorKind::InvalidInput
+    );
+    manager.set_nonblocking(true).unwrap();
+    assert_eq!(
+        receive(&manager, limits()).unwrap_err().kind(),
+        io::ErrorKind::WouldBlock
+    );
+    manager.set_nonblocking(false).unwrap();
+    // One byte over is rejected during validation, before any send attempt:
+    // with no manager endpoint at all, the error surfaces instead of
+    // Submission::NoManager, proving no socket was touched.
+    let absent = Notifier::from_snapshot(&Snapshot::default(), Duration::from_millis(10)).unwrap();
+    let oversized = format!("A={}", "x".repeat(MAX_MESSAGE_BYTES - 1));
+    assert!(absent.send(&oversized, &[]).is_err());
+    assert!(absent.status(&"x".repeat(MAX_MESSAGE_BYTES - 6)).is_err());
+    // A raw over-limit datagram mirrors what systemd does to one: the
+    // realistic 4096-byte receive buffer reports truncation, i.e. the
+    // manager side discards it as if never sent.
+    let filler = UnixDatagram::unbound().unwrap();
+    filler.connect(&path).unwrap();
+    send(&filler, oversized.as_bytes(), &[]).unwrap();
+    assert_eq!(
+        receive(&manager, limits()).unwrap_err().kind(),
+        io::ErrorKind::InvalidData
+    );
     cleanup(&path);
 }
 #[test]

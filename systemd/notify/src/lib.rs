@@ -26,7 +26,13 @@ mod unix {
         },
         time::{Duration, Instant},
     };
-    pub const MAX_MESSAGE_BYTES: usize = 16 * 1024;
+    /// Whole-datagram ceiling matching systemd's receive buffer: managers read
+    /// into `char[NOTIFY_BUFFER_MAX]` where `NOTIFY_BUFFER_MAX` is `PIPE_BUF`
+    /// (4096 on Linux) and discard truncated datagrams as if never sent
+    /// (upstream src/basic/constants.h and src/shared/notify-recv.c). Staying
+    /// within this limit is necessary, not sufficient: a `Submitted` message of
+    /// legal size can still be ignored by the manager.
+    pub const MAX_MESSAGE_BYTES: usize = 4096;
     #[derive(Clone, Debug, Default)]
     pub struct Snapshot {
         pub notify_socket: Option<OsString>,
