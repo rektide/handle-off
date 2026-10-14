@@ -11,8 +11,9 @@
 //! `unix-rights` adds raw datagram descriptor transfer; `state-rkyv` adds a checked
 //! metadata codec, and `state-memfd` adds an independent sealed Linux byte carrier.
 //! `activation` parses classic manager metadata and explicitly claims inherited
-//! descriptors without fdstore, codec, or bundle dependencies. Bundle delivery
-//! protocols, manager custody, and cooperative replacement are not implemented yet.
+//! descriptors without fdstore, codec, or bundle dependencies. `transport-unix`
+//! selects the sample datagram bundle delivery/acceptance protocol. Manager custody
+//! and cooperative replacement are not implemented yet.
 //!
 //! The current architecture proposal, its evidence, and the draft epic map
 //! live in the repository under `design/fd-handoff/`.
@@ -38,3 +39,6 @@ pub use handle_off_state_memfd as state_memfd;
 pub use handle_off_activation as activation;
 #[cfg(feature = "state-rkyv")]
 pub use handle_off_state_rkyv as state_rkyv;
+
+#[cfg(feature = "transport-unix")]
+pub use handle_off_transport_unix as transport_unix;

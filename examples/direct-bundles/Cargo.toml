@@ -1,0 +1,14 @@
+[package]
+name = "handle-off-direct-bundles-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[target.'cfg(target_os = "linux")'.dependencies]
+handle-off-transport-unix = { path = "../../transport/unix", version = "0.1.0" }
+handle-off-state-memfd = { path = "../../state/memfd", version = "0.1.0" }
+handle-off-state = { path = "../../state/core", version = "0.1.0" }
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }

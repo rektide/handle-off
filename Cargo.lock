@@ -101,6 +101,7 @@ dependencies = [
  "handle-off-state-memfd",
  "handle-off-state-rkyv",
  "handle-off-stdio",
+ "handle-off-transport-unix",
  "handle-off-unix-rights",
 ]
 
@@ -126,6 +127,17 @@ version = "0.1.0"
 dependencies = [
  "handle-off-handles",
  "handle-off-state",
+]
+
+[[package]]
+name = "handle-off-direct-bundles-example"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-state",
+ "handle-off-state-memfd",
+ "handle-off-transport-unix",
 ]
 
 [[package]]
@@ -182,6 +194,16 @@ dependencies = [
 [[package]]
 name = "handle-off-stdio"
 version = "0.1.0"
+
+[[package]]
+name = "handle-off-transport-unix"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-state-rkyv",
+ "handle-off-unix-rights",
+]
 
 [[package]]
 name = "handle-off-unix-rights"

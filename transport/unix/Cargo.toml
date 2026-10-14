@@ -1,0 +1,13 @@
+[package]
+name = "handle-off-transport-unix"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Optional blocking sample bundle delivery protocol over connected Unix datagrams"
+
+[dependencies]
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }
+handle-off-state-rkyv = { path = "../../state/rkyv", version = "0.1.0" }
+handle-off-unix-rights = { path = "../../handles/unix-rights", version = "0.1.0" }
