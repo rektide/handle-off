@@ -1,0 +1,15 @@
+[package]
+name = "handle-off-unix-rights"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Blocking connected Unix datagram payload and SCM_RIGHTS transfer"
+
+[target.'cfg(unix)'.dependencies]
+# rustix 1.1.5's net-only Linux build references its gated timespec module.
+# Enable time to compile that upstream combination without enabling all APIs.
+rustix = { version = "1.1.5", default-features = false, features = ["std", "net", "time"] }
+
+[dev-dependencies]
+rustix = { version = "1.1.5", default-features = false, features = ["std", "net", "time", "pipe"] }

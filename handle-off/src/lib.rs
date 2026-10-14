@@ -8,7 +8,8 @@
 //!
 //! All capabilities are opt-in. `local` enables only invocation and stdio;
 //! defaults are empty. No codec, async runtime, or service manager is required.
-//! Transport, custody, and cooperative replacement are not implemented yet.
+//! `unix-rights` adds raw datagram descriptor transfer. Bundle delivery protocols,
+//! manager custody, and cooperative replacement are not implemented yet.
 //!
 //! The current architecture proposal, its evidence, and the draft epic map
 //! live in the repository under `design/fd-handoff/`.
@@ -19,7 +20,10 @@ pub use handle_off_bundle as bundle;
 pub use handle_off_handles as handles;
 #[cfg(feature = "invocation")]
 pub use handle_off_invocation as invocation;
+
 #[cfg(feature = "state")]
 pub use handle_off_state as state;
 #[cfg(feature = "stdio")]
 pub use handle_off_stdio as stdio;
+#[cfg(feature = "unix-rights")]
+pub use handle_off_unix_rights as unix_rights;

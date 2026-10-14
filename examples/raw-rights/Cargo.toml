@@ -1,0 +1,10 @@
+[package]
+name = "handle-off-raw-rights-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+handle-off-unix-rights = { path = "../../handles/unix-rights", version = "0.1.0" }

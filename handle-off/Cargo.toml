@@ -14,6 +14,7 @@ bundle = ["dep:handle-off-bundle"]
 invocation = ["dep:handle-off-invocation"]
 stdio = ["dep:handle-off-stdio"]
 local = ["invocation", "stdio"]
+unix-rights = ["dep:handle-off-unix-rights"]
 
 [dependencies]
 handle-off-handles = { path = "../handles/core", version = "0.1.0", optional = true }
@@ -21,3 +22,4 @@ handle-off-state = { path = "../state/core", version = "0.1.0", optional = true 
 handle-off-bundle = { path = "../handles/bundle", version = "0.1.0", optional = true }
 handle-off-invocation = { path = "../invocation/core", version = "0.1.0", optional = true }
 handle-off-stdio = { path = "../handles/stdio", version = "0.1.0", optional = true }
+handle-off-unix-rights = { path = "../handles/unix-rights", version = "0.1.0", optional = true }
