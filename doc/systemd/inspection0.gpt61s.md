@@ -7,11 +7,15 @@ status: implemented
 generated: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
 sources:
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Read adapter source/tests and facade integration; wrote this report and revised maintained exposure without broad check reruns
+    title: Documented adapter and review limits, then read the bounded-parser correction and updated evidence without test reruns
   - resource: "opencode://ses_ec717edaeffeP56i2EfWqe8r3v"
     title: Implemented 420c5b76 and reported 87 workspace tests, pinned-nightly checks and read-only live manager snapshots
   - resource: "opencode://ses_ec6f1618effeapZzCE6xoMvdTD"
-    title: Independent review findings supplied by parent dispatch, including P2 pre-bound JSON allocation and cross-step incarnation/metadata limits
+    title: Review findings and source-only confirmation of the bounded-parser fix supplied by parent dispatch; incarnation/metadata limits retained
+  - resource: "opencode://ses_ec6b80ea4ffei4EU41MCJuKm5t"
+    title: Implemented bounded typed dump visitor in 00550c3b; correction checks reported via parent dispatch
+  - resource: /systemd/inspect/src/dump.rs
+    title: Typed budget-aware dump decoding, early excess-row rejection and error mapping
   - resource: /systemd/inspect/src/lib.rs
     title: Linux-only adapter contract and explicit metadata/command trust limits
   - resource: /systemd/inspect/src/inspector.rs
@@ -51,9 +55,10 @@ inspector to notify/fdstore themselves or changing their receipt APIs.
 **Inspection is observation, not transfer of execution permission.** No store,
 remove, service launch, automatic pruning, supervisor or generation lifecycle
 operation is performed. Barrier completion remains ordering, never acceptance.
-Independent review found a P2 entry-bound parsing issue; its bounded-visitor
-correction is pending as described below. No review acceptance or ticket closure
-is claimed here.
+Independent review found a P2 entry-bound parsing issue; bounded-visitor
+correction `00550c3b` landed as described below. The reviewer confirmed the fix
+with no new findings, and the parent closed the E3.2 fdstore ticket. Neither
+decision strengthens the observation or lifecycle guarantees described here.
 
 ## Explicit target and service incarnation
 
@@ -154,11 +159,13 @@ guessing that storage is absent.
 Output and entry ceilings are configurable up to 8 MiB and 65,536 respectively;
 time must be positive and representable. These are not exact allocator-memory
 limits or hard-real-time guarantees: parsing, scheduling and process cleanup
-also take work. At this baseline the entry limit is checked **after** building
-a full JSON `Value` and cloning its `data`; it does not yet bound JSON row
-materialization. The output-byte bound still applies. See the pending review
-correction below rather than treating the entry bound as an early allocation
-guard.
+also take work. After `00550c3b`, typed dump decoding materializes at most
+`max_entries` rows and rejects an excess row before deserializing its fields,
+without constructing a dump JSON `Value` tree or cloning its data. Retained
+rows/strings and decoding work buffers have O(max_entries + input bytes)
+allocation scaling under the 8 MiB input cap, not an exact heap-byte limit.
+Other property replies still use JSON Values, but take their data without
+cloning it. See the correction evidence below.
 
 Each busctl runs without shell interpolation in a dedicated process group,
 with nonblocking output pipes and no reader threads. Timeout/output/I/O failures
@@ -168,7 +175,7 @@ and unkillable kernel tasks are outside the contract. `with_program` permits an
 explicit trusted executable override; the default resolves `busctl` through PATH.
 Locale/color settings affect the child only, not process-global environment.
 
-The adapter adds Linux-only `serde_json` and `roxmltree`, reuses rustix
+The adapter adds Linux-only `serde`, `serde_json` and `roxmltree`, reuses rustix
 (`std`, `fs`, `event`, `process`), and depends on the workspace fdstore crate.
 It requires external busctl at query time, but no Rust D-Bus library or async
 runtime. Empty defaults, `local`, activation and notify/fdstore-only builds do
@@ -196,15 +203,33 @@ This session read source, tests, manifests and facade wiring, compared the
 documented limits/outcomes with those paths, and checked documentation links
 and provenance. It performed no broad test reruns or live manager commands.
 
-## Review finding and pending correction
+## Review finding and bounded-parser correction
 
 Reviewer `opencode://ses_ec6f1618effeapZzCE6xoMvdTD`, via parent dispatch,
 identified **P2: JSON Value parsing and data cloning precede max_entries
-enforcement** in `420c5b76`. A separate implementation session
-(`opencode://ses_ec6b80ea4ffei4EU41MCJuKm5t`) is correcting this with a bounded
-visitor; this report has not received a resulting commit or verification and
-does not claim it fixed. The baseline checks above remain attributed baseline
-checks, not correction checks.
+enforcement** in `420c5b76`. Correction `00550c3b`, by
+`opencode://ses_ec6b80ea4ffei4EU41MCJuKm5t`, replaces dump Value parsing with
+budget-aware typed visitors. The row seed refuses excess entries before field
+decoding; vector capacity grows only from accepted rows, not an untrusted size
+hint. Unknown envelope fields use `IgnoredAny` rather than a Value subtree.
+The inspector's Linux-only dependency branch adds serde; primitives and other
+feature branches remain unchanged.
+
+Regression tests exercise budgets 0/1/2, large tiny-row lists, malformed unread
+excess tails, oversized tuples within budget, envelope ordering/duplicates,
+wrong scalar types, trailing input, empty permitted FDNAME and the input cap.
+Excess unread rows/tails return `OutputLimit`, deliberately without diagnosing
+their fields; decoded structural failures return `Json`. This documentation
+session read the correction diff, visitor and tests, and did not rerun tests.
+
+Via parent dispatch, the correction session reports **11 targeted nextest tests
+passed**, the optional live test skipped, and targeted clippy/formatting passed
+on the pinned nightly. These are new patch checks, not a replacement for the
+attributed 87-test baseline or a fresh live-manager result. Reviewer
+`opencode://ses_ec6f1618effeapZzCE6xoMvdTD`, via parent dispatch, confirmed
+that `00550c3b` fixes the JSON allocation issue while retaining exact structural
+checks, with no new findings. That confirmation was source-only, without a test
+rerun. The parent subsequently closed `pfd-handle-off-systemd-fdstore` (E3.2).
 
 The reviewer reported no other direct low-level custody-verifier blocker, while
 emphasizing MainPID-only target pinning, per-call rather than cross-step

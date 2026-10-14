@@ -8,7 +8,7 @@ generated: { by: "model:zai-coding-plan/glm-5.3#max", at: 2026-10-14 }
 revised: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
 sources:
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Preserved the prior report; completed the 4096-byte correction and verification, then linked the separate inspection checkpoint
+    title: Preserved the prior report; completed the 4096-byte correction and linked inspection delivery and bounded-parser correction evidence
   - resource: /doc/systemd/inspection0.gpt61s.md
     title: Later optional adapter fills the inspection seam without changing primitive submission or barrier guarantees
   - resource: "opencode://ses_ec6f1618effeapZzCE6xoMvdTD"
@@ -282,9 +282,10 @@ OFD identity, alias multiplicity, capacity reservation or lifecycle permission.
 Notify/fdstore remain inspector-free; barriers remain ordering only. Earlier
 pending-adapter and ticket-status statements above describe their checkpoint,
 not a current claim that the adapter is absent. The inspection report records
-the review's pending P2 early-JSON-entry-bound correction and further cross-step
-incarnation/access-flag limits. This addendum records delivery, not completed
-review acceptance or ticket closure.
+the review's P2 early-JSON-entry-bound correction (`00550c3b`, confirmed by
+source-only review) and further cross-step incarnation/access-flag limits.
+The parent closed the E3.2 fdstore ticket after that confirmation; the earlier
+in-progress status remains checkpoint history, not current ticket state.
 
 ## Links
 

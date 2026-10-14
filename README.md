@@ -9,7 +9,7 @@ sources:
   - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
     title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Completed custody and rendezvous exposure, then documented optional inspection and its metadata-verification limits
+    title: Completed custody/rendezvous exposure and optional inspection limits, then updated the bounded-parser correction evidence
   - resource: "opencode://ses_ec717edaeffeP56i2EfWqe8r3v"
     title: Implemented the optional inspection adapter and reported pinned-nightly and read-only live checks
   - resource: /doc/systemd/inspection0.gpt61s.md
@@ -78,7 +78,7 @@ types and metadata can be used without descriptor operations.
 The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
 rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
 `systemd-notify` and `systemd-fdstore` compose workspace crates plus rustix;
-`systemd-inspect` separately adds serde_json/roxmltree, reuses rustix on Linux,
+`systemd-inspect` separately adds serde/serde_json/roxmltree, reuses rustix on Linux,
 and requires an external trusted `busctl` executable at query time;
 `transport-unix` and the std-only `rendezvous` crates compose workspace crates
 only. None are included in `local`.
@@ -234,7 +234,7 @@ alias count**, pin an incarnation across lifecycle steps, or prove that closing
 all originals is safe.
 Removal verification observes absence only. Default bounds are a 3-second
 aggregate query deadline, 1 MiB combined stdout/stderr per command, and 16,384
-entries (early JSON entry-bound enforcement has a pending review correction);
+entries, enforced during typed dump decoding before excess-row fields are read;
 timeout/output failures kill the command's process group and reap its
 direct child. Capacity, unsupported inspection and permission/command errors
 remain distinct. No Rust D-Bus library, async runtime or live state mutation
