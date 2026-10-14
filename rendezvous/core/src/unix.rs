@@ -6,8 +6,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Maximum service-name and namespace length in bytes, matching the usual
-/// filesystem component limit so validated names survive path construction.
+/// Per-name limit for service names and namespaces, in UTF-8 bytes, sized to
+/// the usual single filesystem component limit. It bounds each name alone:
+/// a filename combining a namespace, a service name, and separators can
+/// still exceed a particular filesystem's component limit. That limit is
+/// checked by filesystem operations, not name validation. Separately, the
+/// full socket address must fit the platform's Unix socket address capacity,
+/// checked by [`Endpoint::socket_addr`].
 pub const MAX_NAME_BYTES: usize = 255;
 
 /// A caller-owned rendezvous name, validated once so resolvers can trust it.
@@ -174,8 +179,11 @@ impl Endpoint {
     }
 
     /// Address conversion for a caller about to connect. Performs no I/O.
-    /// Filesystem paths can exceed the kernel address limit; abstract names
-    /// need Linux (`std::os::linux::net::SocketAddrExt`) and return
+    /// Both address kinds are capacity-bounded: a filesystem path longer
+    /// than the kernel address structure and an abstract name exceeding the
+    /// abstract-namespace limit both error here rather than silently
+    /// truncating. Abstract names need Linux
+    /// (`std::os::linux::net::SocketAddrExt`) and return
     /// [`io::ErrorKind::Unsupported`] elsewhere.
     pub fn socket_addr(&self) -> io::Result<SocketAddr> {
         match self {
@@ -187,9 +195,7 @@ impl Endpoint {
                 )
             }
             #[cfg(not(target_os = "linux"))]
-            Self::Abstract(_) => Err(io::Error::other(
-                "abstract namespace endpoints need a Linux target",
-            )),
+            Self::Abstract(_) => Err(io::Error::from(io::ErrorKind::Unsupported)),
         }
     }
 }
@@ -420,7 +426,10 @@ mod tests {
     }
 
     #[test]
-    fn display_is_lossy_but_unambiguous() {
+    fn display_is_lossy_diagnostics_only() {
+        // Lossy rendering only: non-UTF-8 bytes become replacement
+        // characters, and distinct byte sequences can render identically.
+        // Display output is for humans and logs, never for matching.
         assert_eq!(
             Endpoint::path("/run/demo.sock").unwrap().to_string(),
             "/run/demo.sock"
@@ -440,14 +449,23 @@ mod tests {
             .socket_addr()
             .unwrap();
         assert_eq!(path_addr.as_pathname(), Some(Path::new("/run/demo.sock")));
-        let abstract_addr = Endpoint::abstract_name(b"demo")
-            .unwrap()
-            .socket_addr()
-            .unwrap();
+        let abstract_addr = Endpoint::abstract_name(b"demo").unwrap().socket_addr();
         #[cfg(target_os = "linux")]
         assert_eq!(
-            std::os::linux::net::SocketAddrExt::as_abstract_name(&abstract_addr),
+            std::os::linux::net::SocketAddrExt::as_abstract_name(&abstract_addr.unwrap()),
             Some(b"demo".as_slice())
+        );
+        #[cfg(not(target_os = "linux"))]
+        assert_eq!(
+            abstract_addr.unwrap_err().kind(),
+            io::ErrorKind::Unsupported
+        );
+        #[cfg(target_os = "linux")]
+        assert!(
+            Endpoint::abstract_name(vec![b'a'; 200])
+                .unwrap()
+                .socket_addr()
+                .is_err()
         );
         let long = Endpoint::path(format!("/tmp/{}", "a".repeat(200)))
             .unwrap()

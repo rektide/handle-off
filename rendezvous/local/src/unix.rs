@@ -12,7 +12,9 @@ use std::{
 /// disables the source.
 pub const XDG_RUNTIME_DIR_VAR: &str = "XDG_RUNTIME_DIR";
 
-/// Socket suffix of derived flat filename candidates.
+/// Socket suffix of derived flat filename candidates, which take the
+/// injective form `<namespace-bytes>-<namespace>-<name><suffix>` (see the
+/// crate docs).
 pub const SOCKET_SUFFIX: &str = ".sock";
 
 /// Default consultation order: explicit, environment, XDG runtime directory,
@@ -80,7 +82,7 @@ impl fmt::Display for Namespace {
 /// assert_eq!(found.len(), 1);
 /// assert_eq!(
 ///     found[0].endpoint.as_path().unwrap(),
-///     std::path::Path::new("/run/user/1000/demo-ctl.sock")
+///     std::path::Path::new("/run/user/1000/4-demo-ctl.sock")
 /// );
 /// assert_eq!(found[0].origin.as_str(), "xdg-runtime-dir");
 /// ```
@@ -129,7 +131,9 @@ impl LocalPolicy {
     }
 
     /// Configures the base directory for [`Source::LocalDir`] candidates.
-    /// Not created, verified, or canonicalized by this policy.
+    /// Not created, verified, or canonicalized by this policy; an interior
+    /// NUL byte is likewise not checked here and surfaces only if this
+    /// source is reached during resolution and yields.
     pub fn with_local_directory(mut self, directory: impl Into<PathBuf>) -> Self {
         self.local_directory = Some(directory.into());
         self
@@ -236,7 +240,12 @@ impl LocalPolicy {
         name: &ServiceName,
         origin: &str,
     ) -> Result<Vec<Candidate>, ResolveError> {
-        let filename = format!("{}-{name}{SOCKET_SUFFIX}", self.namespace.as_str());
+        // Length prefix (UTF-8 byte length of the namespace) makes the
+        // scheme injective: the filename determines the (namespace, service)
+        // pair, so distinct pairs cannot collide the way plain
+        // `<namespace>-<name>.sock` allowed (`a`/`b-c` vs `a-b`/`c`).
+        let namespace = self.namespace.as_str();
+        let filename = format!("{}-{namespace}-{name}{SOCKET_SUFFIX}", namespace.len());
         let path = directory.as_ref().join(filename);
         let endpoint = Endpoint::path(path).map_err(|invalid| ResolveError::Endpoint {
             origin: Origin::new(origin),
@@ -277,7 +286,7 @@ mod tests {
         assert_eq!(found.len(), 1);
         assert_eq!(
             found[0].endpoint.as_path().unwrap(),
-            Path::new("/run/user/1000/app-ctl.sock")
+            Path::new("/run/user/1000/3-app-ctl.sock")
         );
         assert_eq!(found[0].origin.as_str(), ORIGIN_XDG);
     }
@@ -293,7 +302,7 @@ mod tests {
         assert_eq!(found.len(), 1);
         assert_eq!(
             found[0].endpoint.as_path().unwrap(),
-            Path::new("/tmp/app-ctl.sock")
+            Path::new("/tmp/3-app-ctl.sock")
         );
         assert_eq!(found[0].origin.as_str(), ORIGIN_LOCAL);
     }
@@ -381,7 +390,7 @@ mod tests {
         let found = policy.candidates_for("ctl").unwrap();
         assert_eq!(
             found[0].endpoint.as_path().unwrap(),
-            Path::new("/run/user/1000/app-ctl.sock")
+            Path::new("/run/user/1000/3-app-ctl.sock")
         );
     }
 
@@ -394,7 +403,7 @@ mod tests {
         let found = policy.candidates_for("ctl").unwrap();
         assert_eq!(
             found[0].endpoint.as_path().unwrap(),
-            Path::new("/tmp/app-ctl.sock")
+            Path::new("/tmp/3-app-ctl.sock")
         );
         assert_eq!(found[0].origin.as_str(), ORIGIN_LOCAL);
     }
@@ -424,13 +433,69 @@ mod tests {
             .unwrap();
         assert_eq!(
             derived[0].endpoint.as_path().unwrap(),
-            Path::new("/tmp/ns-...sock")
+            Path::new("/tmp/2-ns-...sock")
         );
+    }
+
+    #[test]
+    fn length_prefix_makes_derived_filenames_injective() {
+        // Plain `<namespace>-<name>.sock` collided for these two pairs;
+        // the byte-length prefix separates them.
+        let first = LocalPolicy::new("a", Environment::default())
+            .unwrap()
+            .with_local_directory("/tmp")
+            .candidates_for("b-c")
+            .unwrap()
+            .remove(0)
+            .endpoint;
+        let second = LocalPolicy::new("a-b", Environment::default())
+            .unwrap()
+            .with_local_directory("/tmp")
+            .candidates_for("c")
+            .unwrap()
+            .remove(0)
+            .endpoint;
+        assert_eq!(first.as_path().unwrap(), Path::new("/tmp/1-a-b-c.sock"));
+        assert_eq!(second.as_path().unwrap(), Path::new("/tmp/3-a-b-c.sock"));
+        assert_ne!(first, second);
+
+        // The prefix is the UTF-8 byte length, not the character count:
+        // `é` is one character but two bytes, and the multi-byte pair that
+        // collided under a naive scheme stays separated.
+        let two_bytes = LocalPolicy::new("é", Environment::default())
+            .unwrap()
+            .with_local_directory("/tmp")
+            .candidates_for("x-y")
+            .unwrap()
+            .remove(0)
+            .endpoint;
+        let four_bytes = LocalPolicy::new("é-x", Environment::default())
+            .unwrap()
+            .with_local_directory("/tmp")
+            .candidates_for("y")
+            .unwrap()
+            .remove(0)
+            .endpoint;
+        assert_eq!(two_bytes.as_path().unwrap(), Path::new("/tmp/2-é-x-y.sock"));
+        assert_eq!(
+            four_bytes.as_path().unwrap(),
+            Path::new("/tmp/4-é-x-y.sock")
+        );
+        assert_ne!(two_bytes, four_bytes);
     }
 
     #[test]
     fn interior_nul_directory_inputs_fail_predictably() {
         let with_nul = PathBuf::from(OsString::from_vec(b"/tmp/a\0b".to_vec()));
+        let explicit = Endpoint::path("/tmp/explicit.sock").unwrap();
+        let environment = snapshot(&[xdg(&OsString::from_vec(b"/run/a\0b".to_vec()))]);
+        let found = LocalPolicy::new("app", environment)
+            .unwrap()
+            .with_local_directory(with_nul.clone())
+            .with_endpoint(explicit.clone())
+            .candidates_for("ctl")
+            .unwrap();
+        assert_eq!(found[0].endpoint, explicit);
         let error = LocalPolicy::new("app", Environment::default())
             .unwrap()
             .with_local_directory(with_nul)
