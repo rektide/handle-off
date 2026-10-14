@@ -25,6 +25,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if delivery.manifest.bundles.len() != 2 {
         return Err("sample expects two bundles".into());
     }
+    // Extension policy: this sample interprets extensions only on members
+    // ("example.bytes" v1). It gives no meaning to generation-scope or
+    // bundle-scope extensions, so it rejects ANY extension there — required
+    // or optional — before accepting custody rather than silently ignoring
+    // metadata it cannot interpret. The transport stays opaque to
+    // extensions; this strictness is this consuming application's policy.
+    if !delivery.manifest.extensions.is_empty() {
+        return Err("sample does not interpret generation-scope extensions".into());
+    }
+    for bundle in &delivery.manifest.bundles {
+        if !bundle.extensions.is_empty() {
+            return Err("sample does not interpret bundle-scope extensions".into());
+        }
+    }
     let mut images = Vec::new();
     for bundle in &delivery.manifest.bundles {
         if bundle.members.len() != 1 {
