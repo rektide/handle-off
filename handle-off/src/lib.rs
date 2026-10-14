@@ -17,6 +17,8 @@
 //! offers, explicit removals and application verification hooks. `systemd-inspect`
 //! adds optional bounded busctl service/metadata inspection. Generation custody and
 //! cooperative replacement are not implemented yet.
+//! `handover` adds backend-free generation-scoped permission bookkeeping, retained
+//! evidence and fail-closed quarantine; it does not execute or park applications.
 //! `rendezvous` adds endpoint-resolution vocabulary; `rendezvous-local` adds the
 //! sample explicit/environment/XDG/local policy. Candidates are unverified; neither
 //! feature connects, launches a server, or enters the `local` feature group.
@@ -59,5 +61,8 @@ pub use handle_off_rendezvous_local as rendezvous_local;
 
 #[cfg(feature = "systemd-inspect")]
 pub use handle_off_systemd_inspect as systemd_inspect;
+
+#[cfg(feature = "handover")]
+pub use handle_off_handover as handover;
 #[cfg(feature = "systemd-notify")]
 pub use handle_off_systemd_notify as systemd_notify;

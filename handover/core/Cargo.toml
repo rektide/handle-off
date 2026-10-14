@@ -1,0 +1,10 @@
+[package]
+name = "handle-off-handover"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Cooperative generation-scoped permission transitions with retained evidence and fail-closed quarantine"
+
+[dependencies]
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }

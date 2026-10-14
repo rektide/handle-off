@@ -96,6 +96,7 @@ dependencies = [
  "handle-off-activation",
  "handle-off-bundle",
  "handle-off-handles",
+ "handle-off-handover",
  "handle-off-invocation",
  "handle-off-rendezvous",
  "handle-off-rendezvous-local",
@@ -148,6 +149,13 @@ dependencies = [
 [[package]]
 name = "handle-off-handles"
 version = "0.1.0"
+
+[[package]]
+name = "handle-off-handover"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+]
 
 [[package]]
 name = "handle-off-invocation"
