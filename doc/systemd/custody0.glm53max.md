@@ -8,7 +8,9 @@ generated: { by: "model:zai-coding-plan/glm-5.3#max", at: 2026-10-14 }
 revised: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
 sources:
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Preserved the prior report; completed the 4096-byte bound correction, targeted verification, comment-only checkpoint and README exposure
+    title: Preserved the prior report; completed the 4096-byte correction and verification, then linked the separate inspection checkpoint
+  - resource: /doc/systemd/inspection0.gpt61s.md
+    title: Later optional adapter fills the inspection seam without changing primitive submission or barrier guarantees
   - resource: "opencode://ses_ec6f1618effeapZzCE6xoMvdTD"
     title: Independent review identified the systemd receive-buffer mismatch and required exact-boundary regression coverage
   - resource: file:///home/rektide/archive/systemd/systemd/src/basic/constants.h
@@ -269,6 +271,20 @@ Ticket status at documentation time: `in_progress`, with review underway and
 the optional manager inspection/acceptance adapter being implemented
 separately to complete acceptance. The rendezvous ticket is likewise still
 open pending its own review; neither closure is claimed here.
+
+## Later inspection checkpoint
+
+The adapter described above as separate work landed in `420c5b76` after this
+primitive checkpoint. See ⇄ [optional inspection](/doc/systemd/inspection0.gpt61s.md)
+for explicit service-incarnation checks, bounded busctl queries, and offer/removal
+observation. `Confirmed` there means per-name kernel-metadata membership, not
+OFD identity, alias multiplicity, capacity reservation or lifecycle permission.
+Notify/fdstore remain inspector-free; barriers remain ordering only. Earlier
+pending-adapter and ticket-status statements above describe their checkpoint,
+not a current claim that the adapter is absent. The inspection report records
+the review's pending P2 early-JSON-entry-bound correction and further cross-step
+incarnation/access-flag limits. This addendum records delivery, not completed
+review acceptance or ticket closure.
 
 ## Links
 

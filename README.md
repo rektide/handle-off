@@ -9,7 +9,11 @@ sources:
   - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
     title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Completed custody and rendezvous exposure, preserving prior edits and linking verified reports
+    title: Completed custody and rendezvous exposure, then documented optional inspection and its metadata-verification limits
+  - resource: "opencode://ses_ec717edaeffeP56i2EfWqe8r3v"
+    title: Implemented the optional inspection adapter and reported pinned-nightly and read-only live checks
+  - resource: /doc/systemd/inspection0.gpt61s.md
+    title: Optional inspection API, bounds, observation limits and attributed verification
   - resource: /doc/systemd/custody0.glm53max.md
     title: Notify/fdstore implementation and corrected message-bound verification
   - resource: /rendezvous/local/src/lib.rs
@@ -39,8 +43,8 @@ The foundation provides independent resource, bundle, opaque state, invocation,
 and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
 codec, a sealed Linux state-image carrier, classic socket-activation metadata
 handling, a sample correlated bundle-delivery protocol, service notifications
-with fdstore offers, and endpoint rendezvous vocabulary with a sample policy.
-Manager custody coordination beyond unverified offers, and cooperative
+with fdstore offers and optional read-only membership inspection, and endpoint
+rendezvous vocabulary with a sample policy. Generation custody and cooperative
 lifecycle coordination are not implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
@@ -63,6 +67,7 @@ with the reading map in
 | `handle-off-transport-unix` (`transport/unix`) | Sample correlated bundle delivery and acceptance over connected datagrams |
 | `handle-off-systemd-notify` (`systemd/notify`) | Runtime-free notifications and bounded ordering barriers to explicit sockets |
 | `handle-off-systemd-fdstore` (`systemd/fdstore`) | Named fdstore offers/removes with borrowed receipts and explicit verification |
+| `handle-off-systemd-inspect` (`systemd/inspect`) | Optional Linux busctl service snapshots and kernel-metadata membership checks |
 | `handle-off-rendezvous` (`rendezvous/core`) | Endpoint-resolution contract yielding unverified candidates |
 | `handle-off-rendezvous-local` (`rendezvous/local`) | Sample explicit/environment/XDG/local resolution policy |
 
@@ -73,6 +78,8 @@ types and metadata can be used without descriptor operations.
 The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
 rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
 `systemd-notify` and `systemd-fdstore` compose workspace crates plus rustix;
+`systemd-inspect` separately adds serde_json/roxmltree, reuses rustix on Linux,
+and requires an external trusted `busctl` executable at query time;
 `transport-unix` and the std-only `rendezvous` crates compose workspace crates
 only. None are included in `local`.
 
@@ -216,8 +223,22 @@ when manager support is known. It does not establish fdstore custody.
 all entries under a name, and exposes explicit `FDPOLL` policy. Originals stay
 caller-owned. Capabilities, capacity snapshots, and receipt verification are
 explicit application inputs; the primitives include no manager inspector or
-automatic pruning. An optional inspection adapter is separate work, not claimed
-complete here. See the [custody checkpoint](doc/systemd/custody0.glm53max.md).
+automatic pruning. See the [custody checkpoint](doc/systemd/custody0.glm53max.md).
+
+The separate `systemd-inspect` feature selects a read-only Linux `busctl`
+adapter with explicit user/system bus, canonical service name and expected
+MainPID. Snapshots bracket queries with service PID/InvocationID checks.
+Offer verification compares all entries under the offered name with retained
+originals' kernel metadata; **it does not prove OFD identity, access flags or
+alias count**, pin an incarnation across lifecycle steps, or prove that closing
+all originals is safe.
+Removal verification observes absence only. Default bounds are a 3-second
+aggregate query deadline, 1 MiB combined stdout/stderr per command, and 16,384
+entries (early JSON entry-bound enforcement has a pending review correction);
+timeout/output failures kill the command's process group and reap its
+direct child. Capacity, unsupported inspection and permission/command errors
+remain distinct. No Rust D-Bus library, async runtime or live state mutation
+is required by the adapter. See the [inspection checkpoint](doc/systemd/inspection0.gpt61s.md).
 
 ## Endpoint rendezvous
 
