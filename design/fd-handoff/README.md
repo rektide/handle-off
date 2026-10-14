@@ -6,6 +6,8 @@ resource: /design/fd-handoff/README.md
 status: draft
 generated: { by: "model:openai/gpt-6-astra", at: 2026-10-14 }
 sources:
+  - resource: "opencode://ses_ec616a6eaffe0I3U3HgN4tJ0Ho"
+    title: "Added current naming and transcript-grounded capability opportunity assessment"
   - resource: "opencode://ses_ec7f40693ffew22J16HkhJkhFP"
     title: "Architecture direction, draft epic/ticket map, and corpus navigation"
 ---
@@ -46,6 +48,9 @@ sources:
 
 ## Investigations
 
+- [Named resources and possible futures](naming-opportunities0.gpt6a.md): current
+  naming scopes; transcript-grounded opportunities for readable inventories,
+  Varlink reporting, persistent datasets, restart assessment, and LUO recovery.
 - [Connected-client continuity recovery](research1.glm53max.md): finds the
   implemented deployment continuation and its live evidence; corrects the
   initial investigation's checkout scope. Read first for bus-proxy precedent.
