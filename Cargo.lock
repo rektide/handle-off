@@ -97,6 +97,8 @@ dependencies = [
  "handle-off-bundle",
  "handle-off-handles",
  "handle-off-invocation",
+ "handle-off-rendezvous",
+ "handle-off-rendezvous-local",
  "handle-off-state",
  "handle-off-state-memfd",
  "handle-off-state-rkyv",
@@ -162,6 +164,17 @@ name = "handle-off-raw-rights-example"
 version = "0.1.0"
 dependencies = [
  "handle-off-unix-rights",
+]
+
+[[package]]
+name = "handle-off-rendezvous"
+version = "0.1.0"
+
+[[package]]
+name = "handle-off-rendezvous-local"
+version = "0.1.0"
+dependencies = [
+ "handle-off-rendezvous",
 ]
 
 [[package]]

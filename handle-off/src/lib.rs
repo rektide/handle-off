@@ -16,6 +16,9 @@
 //! provides notifications/ordering barriers; `systemd-fdstore` adds unverified store
 //! offers, explicit removals and application verification hooks. Native manager
 //! inspection, generation custody and cooperative replacement are not implemented yet.
+//! `rendezvous` adds endpoint-resolution vocabulary; `rendezvous-local` adds the
+//! sample explicit/environment/XDG/local policy. Candidates are unverified; neither
+//! feature connects, launches a server, or enters the `local` feature group.
 //!
 //! The current architecture proposal, its evidence, and the draft epic map
 //! live in the repository under `design/fd-handoff/`.
@@ -47,5 +50,10 @@ pub use handle_off_transport_unix as transport_unix;
 
 #[cfg(feature = "systemd-fdstore")]
 pub use handle_off_systemd_fdstore as systemd_fdstore;
+
+#[cfg(feature = "rendezvous")]
+pub use handle_off_rendezvous as rendezvous;
+#[cfg(feature = "rendezvous-local")]
+pub use handle_off_rendezvous_local as rendezvous_local;
 #[cfg(feature = "systemd-notify")]
 pub use handle_off_systemd_notify as systemd_notify;
