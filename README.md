@@ -9,11 +9,13 @@ sources:
   - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
     title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
-    title: Completed custody/rendezvous exposure and optional inspection limits, then updated the bounded-parser correction evidence
+    title: Maintained custody/rendezvous/inspection exposure and correction evidence, then documented the cooperative handover core
   - resource: "opencode://ses_ec717edaeffeP56i2EfWqe8r3v"
-    title: Implemented the optional inspection adapter and reported pinned-nightly and read-only live checks
+    title: Implemented inspection and handover core; reported pinned-nightly, synthetic lifecycle and read-only manager checks
   - resource: /doc/systemd/inspection0.gpt61s.md
     title: Optional inspection API, bounds, observation limits and attributed verification
+  - resource: /doc/handover/core0.gpt61s.md
+    title: Backend-free handover bookkeeping, trusted evidence, fail-closed transitions and attributed tests
   - resource: /doc/systemd/custody0.glm53max.md
     title: Notify/fdstore implementation and corrected message-bound verification
   - resource: /rendezvous/local/src/lib.rs
@@ -44,8 +46,9 @@ and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
 codec, a sealed Linux state-image carrier, classic socket-activation metadata
 handling, a sample correlated bundle-delivery protocol, service notifications
 with fdstore offers and optional read-only membership inspection, and endpoint
-rendezvous vocabulary with a sample policy. Generation custody and cooperative
-lifecycle coordination are not implemented yet. The delivery sequence is proposed in
+rendezvous vocabulary with a sample policy. A backend-free cooperative handover
+permission core is implemented; concrete generation custody/control adapters and
+real application replacement are not yet implemented. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -70,6 +73,7 @@ with the reading map in
 | `handle-off-systemd-inspect` (`systemd/inspect`) | Optional Linux busctl service snapshots and kernel-metadata membership checks |
 | `handle-off-rendezvous` (`rendezvous/core`) | Endpoint-resolution contract yielding unverified candidates |
 | `handle-off-rendezvous-local` (`rendezvous/local`) | Sample explicit/environment/XDG/local resolution policy |
+| `handle-off-handover` (`handover/core`) | Cooperative permission bookkeeping with retained evidence and fail-closed quarantine |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
@@ -81,7 +85,8 @@ rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
 `systemd-inspect` separately adds serde/serde_json/roxmltree, reuses rustix on Linux,
 and requires an external trusted `busctl` executable at query time;
 `transport-unix` and the std-only `rendezvous` crates compose workspace crates
-only. None are included in `local`.
+only. `handover` uses foundation workspace crates only, with no external dependency,
+runtime, codec or backend. None are included in `local`.
 
 ## Local use
 
@@ -254,3 +259,24 @@ prefix is the namespace's UTF-8 byte length, avoiding ambiguous hyphen splits.
 Already-connected transports bypass resolution. Neither rendezvous feature
 enters `local`. See the [rendezvous checkpoint](doc/rendezvous/implementation0.glm53max.md)
 and the [current sample policy](rendezvous/local/src/lib.rs).
+
+## Cooperative handover
+
+`handle-off-handover` tracks generation-scoped custody and execution authority;
+it does not own descriptors, park application I/O, or implement a restart backend.
+Applications retain originals and parked state alongside a long-lived
+`ParkingController`. An `Attempt` borrows bookkeeping; dropping it quarantines
+the controller and retains evidence/abandonment facts without cleanup, closure,
+resume or callbacks.
+
+Publish while parked, verify complete dormant custody, permanently relinquish
+old execution, then release the successor. Explicit `NotRelinquished`,
+`Relinquished` and `Indeterminate` outcomes are distinct: an ambiguous error
+cannot restore old authority. Abort grants a non-Clone `ResumePermit` only after
+trusted retirement evidence; release passes a non-Clone `ReleaseGrant` after an
+irreversible authority transition. A failed release never restores old resume
+permission. Callbacks are trusted assertions, not OS enforcement or proof that
+raw receipts/metadata establish safe handover. Approvals are single-issued per
+controller; applications enforce generation/domain redemption, prevent resets
+and police aliases/auto-resuming leases. No real restart is claimed by
+the synthetic core tests. See the [core checkpoint](doc/handover/core0.gpt61s.md).
