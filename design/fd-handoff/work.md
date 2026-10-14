@@ -119,3 +119,14 @@ Sol medium continues with `pfd-handle-off-direct-rights`: an independently usabl
 blocking SCM_RIGHTS crate, real multiple-descriptor transfer, explicit borrowed
 send/owned receive and truncation/CLOEXEC behavior. Runtime, codec, and bundle
 contracts stay outside the primitive. Checks use the pinned mise-selected Rust.
+
+Transport code landed as `20c4edab`; the
+[transport report](../../doc/transport/rights0.glm53max.md) and README exposure
+landed as `70a72bee`. The primitive uses rustix and explicitly supports Unix
+datagrams, with borrowed send, owned receive, CLOEXEC policy and truncation
+cleanup. Sol reported 19 passing tests plus clippy/format/feature checks. Local
+consumers retain their runtime/codec/transport-free dependency graph. Focused
+review remains underway before the ticket closes.
+
+E2.2 is now in progress: separate optional rkyv representation/validation and
+Linux sealed-memfd carrier implementations, with core contracts kept independent.

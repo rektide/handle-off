@@ -18,6 +18,8 @@ sources:
   authorized implementation starting point.
 - [Foundation implementation report](../../doc/foundation/implementation0.gpt61s.md):
   delivered APIs, extraction owners, feature graph, and measured local baseline.
+- [Descriptor transport report](../../doc/transport/rights0.glm53max.md):
+  blocking datagram rights API, ownership/truncation behavior, and dependency cost.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
   handle/bundle/state vocabulary, cooperative continuity, two proving
   applications, and draft epics/tickets. Current proposal for review.
