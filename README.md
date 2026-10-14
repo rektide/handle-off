@@ -1,3 +1,21 @@
+---
+type: Readme
+title: handle-off
+description: Resource handoff workspace, optional primitives, and their verification boundaries.
+resource: /README.md
+status: implemented
+generated: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
+sources:
+  - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
+    title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
+  - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
+    title: Completed custody and rendezvous exposure, preserving prior edits and linking verified reports
+  - resource: /doc/systemd/custody0.glm53max.md
+    title: Notify/fdstore implementation and corrected message-bound verification
+  - resource: /rendezvous/local/src/lib.rs
+    title: Sample resolver policy and namespace-length-prefixed filename convention
+---
+
 # handle-off
 
 > Pass, retain, and recover access to open resources, together with the
@@ -20,9 +38,10 @@ review in [REVIEW-0.md](REVIEW-0.md) and prior planning in `.transcript/`.
 The foundation provides independent resource, bundle, opaque state, invocation,
 and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
 codec, a sealed Linux state-image carrier, classic socket-activation metadata
-handling, and a sample correlated bundle-delivery protocol. Bundle delivery
-protocols beyond this sample, fdstore custody, and cooperative lifecycle
-coordination are not implemented yet. The delivery sequence is proposed in
+handling, a sample correlated bundle-delivery protocol, service notifications
+with fdstore offers, and endpoint rendezvous vocabulary with a sample policy.
+Manager custody coordination beyond unverified offers, and cooperative
+lifecycle coordination are not implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -42,6 +61,10 @@ with the reading map in
 | `handle-off-state-memfd` (`state/memfd`) | Sealed Linux memfd byte images with positional reads |
 | `handle-off-activation` (`systemd/activation`) | Classic LISTEN_* parsing and explicit inherited-FD claiming |
 | `handle-off-transport-unix` (`transport/unix`) | Sample correlated bundle delivery and acceptance over connected datagrams |
+| `handle-off-systemd-notify` (`systemd/notify`) | Runtime-free notifications and bounded ordering barriers to explicit sockets |
+| `handle-off-systemd-fdstore` (`systemd/fdstore`) | Named fdstore offers/removes with borrowed receipts and explicit verification |
+| `handle-off-rendezvous` (`rendezvous/core`) | Endpoint-resolution contract yielding unverified candidates |
+| `handle-off-rendezvous-local` (`rendezvous/local`) | Sample explicit/environment/XDG/local resolution policy |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
@@ -49,8 +72,9 @@ only `stdio` and `invocation`. Descriptor APIs require Unix. Native invocation
 types and metadata can be used without descriptor operations.
 The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
 rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix;
-`transport-unix` composes workspace crates only (no new dependencies). None are
-included in `local`.
+`systemd-notify` and `systemd-fdstore` compose workspace crates plus rustix;
+`transport-unix` and the std-only `rendezvous` crates compose workspace crates
+only. None are included in `local`.
 
 ## Local use
 
@@ -176,3 +200,36 @@ depends only on workspace crates — no memfd, no runtime — and the
 sealed-memfd bundles between processes, rejecting extensions at scopes it
 does not interpret before accepting. See the
 [bundle delivery checkpoint](doc/transport/bundles0.glm53max.md).
+
+## Manager custody
+
+`handle-off-systemd-notify` sends `READY`, single-line `STATUS`, `STOPPING`,
+and individual `WATCHDOG` notifications to explicit filesystem/Linux abstract
+endpoints or a read-only `NOTIFY_SOCKET` snapshot. It installs no timers and
+never mutates the environment. Messages are at most **4096 bytes**, including
+assignment prefixes. `NoManager` means no endpoint; `Submitted` means kernel
+enqueue, not manager processing or acceptance.
+
+The bounded `BARRIER` pipe-closure protocol orders earlier notifications only
+when manager support is known. It does not establish fdstore custody.
+`handle-off-systemd-fdstore` offers borrowed FDs under nonunique names, removes
+all entries under a name, and exposes explicit `FDPOLL` policy. Originals stay
+caller-owned. Capabilities, capacity snapshots, and receipt verification are
+explicit application inputs; the primitives include no manager inspector or
+automatic pruning. An optional inspection adapter is separate work, not claimed
+complete here. See the [custody checkpoint](doc/systemd/custody0.glm53max.md).
+
+## Endpoint rendezvous
+
+`handle-off-rendezvous` returns **unverified candidates**, not live servers.
+The std-only `handle-off-rendezvous-local` sample consults caller-configured
+explicit, environment, XDG runtime, and local-directory sources in order,
+stopping at the first yielding source. It never connects, probes, creates a
+directory, or launches a server; invalid present configuration is an error,
+not a reason to silently fall back.
+
+Derived names use `<base>/<namespace-bytes>-<namespace>-<name>.sock`, where the
+prefix is the namespace's UTF-8 byte length, avoiding ambiguous hyphen splits.
+Already-connected transports bypass resolution. Neither rendezvous feature
+enters `local`. See the [rendezvous checkpoint](doc/rendezvous/implementation0.glm53max.md)
+and the [current sample policy](rendezvous/local/src/lib.rs).
