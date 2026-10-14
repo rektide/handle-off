@@ -1,0 +1,13 @@
+[package]
+name = "handle-off-systemd-fdstore"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Named fdstore submissions and removals with explicit application verification boundaries"
+
+[dependencies]
+handle-off-systemd-notify = { path = "../notify", version = "0.1.0" }
+
+[target.'cfg(unix)'.dev-dependencies]
+handle-off-unix-rights = { path = "../../handles/unix-rights", version = "0.1.0" }

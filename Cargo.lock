@@ -101,6 +101,8 @@ dependencies = [
  "handle-off-state-memfd",
  "handle-off-state-rkyv",
  "handle-off-stdio",
+ "handle-off-systemd-fdstore",
+ "handle-off-systemd-notify",
  "handle-off-transport-unix",
  "handle-off-unix-rights",
 ]
@@ -194,6 +196,22 @@ dependencies = [
 [[package]]
 name = "handle-off-stdio"
 version = "0.1.0"
+
+[[package]]
+name = "handle-off-systemd-fdstore"
+version = "0.1.0"
+dependencies = [
+ "handle-off-systemd-notify",
+ "handle-off-unix-rights",
+]
+
+[[package]]
+name = "handle-off-systemd-notify"
+version = "0.1.0"
+dependencies = [
+ "handle-off-unix-rights",
+ "rustix",
+]
 
 [[package]]
 name = "handle-off-transport-unix"

@@ -12,8 +12,10 @@
 //! metadata codec, and `state-memfd` adds an independent sealed Linux byte carrier.
 //! `activation` parses classic manager metadata and explicitly claims inherited
 //! descriptors without fdstore, codec, or bundle dependencies. `transport-unix`
-//! selects the sample datagram bundle delivery/acceptance protocol. Manager custody
-//! and cooperative replacement are not implemented yet.
+//! selects the sample datagram bundle delivery/acceptance protocol. `systemd-notify`
+//! provides notifications/ordering barriers; `systemd-fdstore` adds unverified store
+//! offers, explicit removals and application verification hooks. Native manager
+//! inspection, generation custody and cooperative replacement are not implemented yet.
 //!
 //! The current architecture proposal, its evidence, and the draft epic map
 //! live in the repository under `design/fd-handoff/`.
@@ -42,3 +44,8 @@ pub use handle_off_state_rkyv as state_rkyv;
 
 #[cfg(feature = "transport-unix")]
 pub use handle_off_transport_unix as transport_unix;
+
+#[cfg(feature = "systemd-fdstore")]
+pub use handle_off_systemd_fdstore as systemd_fdstore;
+#[cfg(feature = "systemd-notify")]
+pub use handle_off_systemd_notify as systemd_notify;
