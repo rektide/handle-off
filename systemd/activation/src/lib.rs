@@ -84,7 +84,10 @@ impl Snapshot {
     /// is ignored before inspecting its count/names. Partial current-process
     /// metadata is an error. Zero count is no activation (names must fit zero).
     /// Names, when present, must have exactly one colon-separated tag per slot;
-    /// each tag is ASCII without controls, at most 255 bytes. Empty/repeated tags
+    /// each tag is ASCII without controls, at most 255 bytes. Segment collection
+    /// is bounded by the declared count before the count check, so an over-long
+    /// colon run is rejected without materializing one entry per separator.
+    /// Empty/repeated tags
     /// are retained, and reserved tags such as "stored" receive no special identity.
     pub fn parse(&self, current_pid: u32, limits: Limits) -> Result<Option<Metadata>, ParseError> {
         if limits.max_fds > MAX_FDS {
@@ -136,7 +139,11 @@ impl Snapshot {
             let names: Vec<_> = if count == 0 && names.is_empty() {
                 Vec::new()
             } else {
-                names.split(':').collect()
+                // Bound collection before the count check: the total-length
+                // pre-check alone permits up to count * 256 bytes, and a
+                // colon-only value would otherwise materialize a segment per
+                // separator before NameCountMismatch rejects it.
+                names.split(':').take(count + 1).collect()
             };
             if names.len() != count {
                 return Err(ParseError::NameCountMismatch);
@@ -440,6 +447,28 @@ mod tests {
                 )
                 .unwrap_err(),
             ParseError::InvalidLimits
+        );
+    }
+    #[test]
+    fn segment_overcount_is_rejected_without_materializing_every_segment() {
+        // 768 bytes is the longest names value the total-length pre-check
+        // permits for count 3; as colons it forms 769 segments. Collection
+        // stops after count + 1 entries before NameCountMismatch rejects it,
+        // so work is bounded by the declared count, not the input length.
+        let names = ":".repeat(3 * (MAX_NAME_BYTES + 1));
+        assert_eq!(
+            snapshot("42", "3", Some(&names))
+                .parse(42, Limits::default())
+                .unwrap_err(),
+            ParseError::NameCountMismatch
+        );
+        // A single long tag declared as several slots likewise mismatches
+        // by count; no per-separator allocation is involved.
+        assert_eq!(
+            snapshot("42", "4", Some(&"a".repeat(MAX_NAME_BYTES)))
+                .parse(42, Limits::default())
+                .unwrap_err(),
+            ParseError::NameCountMismatch
         );
     }
     #[cfg(unix)]
