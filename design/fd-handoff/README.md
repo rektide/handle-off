@@ -26,6 +26,10 @@ sources:
   rkyv wire encoding and sealed memfd storage, limits, and composition evidence.
 - [Socket activation report](../../doc/systemd/activation0.glm53max.md): classic
   named-descriptor adoption, explicit ownership boundary, and reviewed parser fix.
+- [Systemd custody report](../../doc/systemd/custody0.glm53max.md): notification,
+  borrowed storage offers, removal, barrier ordering, and acceptance boundaries.
+- [Rendezvous report](../../doc/rendezvous/implementation0.glm53max.md): pure
+  endpoint resolution and sample policy, with collision-free flat naming.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
   handle/bundle/state vocabulary, cooperative continuity, two proving
   applications, and draft epics/tickets. Current proposal for review.

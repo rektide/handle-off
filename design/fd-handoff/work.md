@@ -159,6 +159,21 @@ The [bundle delivery report](../../doc/transport/bundles0.glm53max.md) and READM
 landed as `60685ebc`; E2.3 is closed. The measured raw bundle example was 472,096
 bytes stripped/dynamically linked, not yet a thin-client comparison.
 
-In progress: standalone rendezvous contracts/sample policy (G) and runtime-free
-systemd notification/fdstore primitives (Sol medium). Manager generation
-coordination and application session completion are still later layers.
+### Rendezvous complete; manager custody in progress
+
+Rendezvous contracts/sample policy landed `1722b52c` and integrated into the
+workspace/facade in `a4dfb8f2`. Review-driven corrections landed `c1db60b8`:
+injective namespace-byte-length-prefixed filenames, accurate platform error kind,
+and clearer size/validation contracts. Targeted nextest (22), doctests (2),
+clippy, rustdoc and formatting passed on pinned nightly. The
+[rendezvous report](../../doc/rendezvous/implementation0.glm53max.md), revised in
+`606ce699`, preserves G's work and Sol's completion provenance. E2.4 is closed.
+
+Systemd notification/fdstore primitives landed `29271d39`. Review identified a
+notification-size mismatch with the manager's 4096-byte receive buffer; correction
+`a1863146` adds exact-boundary/no-send-over-limit coverage. Twelve targeted tests,
+clippy/formatting and strict workspace rustdoc passed. Notification work is closed;
+the [custody report](../../doc/systemd/custody0.glm53max.md) and README landed
+`582fbae4`, preserving G's authorship and Sol's completion provenance. The independently optional manager-inspection
+adapter is being implemented to complete verified acceptance support. Manager
+generation coordination and application session completion remain later layers.
