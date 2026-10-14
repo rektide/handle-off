@@ -27,3 +27,8 @@ pub use handle_off_state as state;
 pub use handle_off_stdio as stdio;
 #[cfg(feature = "unix-rights")]
 pub use handle_off_unix_rights as unix_rights;
+
+#[cfg(feature = "state-memfd")]
+pub use handle_off_state_memfd as state_memfd;
+#[cfg(feature = "state-rkyv")]
+pub use handle_off_state_rkyv as state_rkyv;

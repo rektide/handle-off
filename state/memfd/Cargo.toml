@@ -1,0 +1,17 @@
+[package]
+name = "handle-off-state-memfd"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Size-bounded sealed Linux memfd byte images with positional reads"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rustix = { version = "1.1.5", default-features = false, features = ["std", "fs"] }
+
+[dev-dependencies]
+handle-off-state-rkyv = { path = "../rkyv", version = "0.1.0" }
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }
+handle-off-state = { path = "../core", version = "0.1.0" }
+handle-off-unix-rights = { path = "../../handles/unix-rights", version = "0.1.0" }
