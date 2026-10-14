@@ -227,6 +227,7 @@ dependencies = [
  "handle-off-systemd-notify",
  "roxmltree",
  "rustix",
+ "serde",
  "serde_json",
 ]
 

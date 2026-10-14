@@ -27,6 +27,8 @@
 #[cfg(target_os = "linux")]
 mod data;
 #[cfg(target_os = "linux")]
+mod dump;
+#[cfg(target_os = "linux")]
 mod inspector;
 #[cfg(target_os = "linux")]
 mod runner;

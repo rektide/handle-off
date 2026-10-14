@@ -1,3 +1,4 @@
+pub use crate::dump::parse_dump;
 use handle_off_systemd_fdstore::{FdName, ManagerReport};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -143,13 +144,13 @@ pub(crate) fn reply(bytes: &[u8], signature: &str) -> Result<serde_json::Value, 
     if bytes.len() > MAX_OUTPUT_BYTES {
         return Err(Error::OutputLimit);
     }
-    let value: serde_json::Value = serde_json::from_slice(bytes).map_err(Error::Json)?;
+    let mut value: serde_json::Value = serde_json::from_slice(bytes).map_err(Error::Json)?;
     if value.get("type").and_then(|v| v.as_str()) != Some(signature) {
         return Err(Error::InvalidReply("unexpected D-Bus signature"));
     }
     value
-        .get("data")
-        .cloned()
+        .as_object_mut()
+        .and_then(|object| object.remove("data"))
         .ok_or(Error::InvalidReply("missing typed data"))
 }
 pub(crate) fn uint32(value: &serde_json::Value) -> Result<u32, Error> {
@@ -172,47 +173,6 @@ pub(crate) fn single(value: &serde_json::Value) -> Result<&serde_json::Value, Er
         return Err(Error::InvalidReply("expected exactly one call result"));
     }
     Ok(&list[0])
-}
-/// Parse busctl's typed call output, preserving all nonunique names. Pure parsing;
-/// no acceptance is inferred from JSON validity or from entry counts.
-pub fn parse_dump(bytes: &[u8], max_entries: usize) -> Result<Vec<StoredEntry>, Error> {
-    if max_entries > MAX_ENTRIES {
-        return Err(Error::InvalidConfiguration("entry limit exceeds ceiling"));
-    }
-    let data = reply(bytes, "a(suuutuusu)")?;
-    let rows = single(&data)?
-        .as_array()
-        .ok_or(Error::InvalidReply("expected fdstore row array"))?;
-    if rows.len() > max_entries {
-        return Err(Error::OutputLimit);
-    }
-    let mut entries = Vec::with_capacity(rows.len());
-    for row in rows {
-        let row = row
-            .as_array()
-            .ok_or(Error::InvalidReply("expected fdstore tuple"))?;
-        if row.len() != 9 {
-            return Err(Error::InvalidReply("fdstore tuple must have nine fields"));
-        }
-        let name = FdName::new(string(&row[0])?)
-            .map_err(|_| Error::InvalidReply("invalid manager FDNAME"))?;
-        entries.push(StoredEntry {
-            name,
-            identity: KernelIdentity {
-                mode: uint32(&row[1])?,
-                device_major: uint32(&row[2])?,
-                device_minor: uint32(&row[3])?,
-                inode: row[4]
-                    .as_u64()
-                    .ok_or(Error::InvalidReply("expected uint64 inode"))?,
-                rdev_major: uint32(&row[5])?,
-                rdev_minor: uint32(&row[6])?,
-            },
-            path: string(&row[7])?,
-            flags: uint32(&row[8])?,
-        });
-    }
-    Ok(entries)
 }
 pub(crate) struct Schema {
     properties: HashMap<(String, String), String>,
@@ -381,6 +341,79 @@ mod tests {
         for length in 0..bytes.len() {
             assert!(parse_dump(&bytes[..length], 1).is_err());
         }
+    }
+    #[test]
+    fn dump_stops_before_deserializing_an_excess_row() {
+        // An excess row's malformed scalar must never be decoded: the row
+        // seed returns OutputLimit before it can produce a JSON type error.
+        let oversized = "0,".repeat(20_000) + "0";
+        for max_entries in [0, 1, 2] {
+            let accepted = (0..max_entries)
+                .map(|_| serde_json::to_string(&row("x", 1)).unwrap())
+                .collect::<Vec<_>>()
+                .join(",");
+            let comma = if max_entries == 0 { "" } else { "," };
+            let bytes =
+                format!(r#"{{"type":"a(suuutuusu)","data":[[{accepted}{comma}[{oversized}]]]}}"#);
+            assert!(matches!(
+                parse_dump(bytes.as_bytes(), max_entries),
+                Err(Error::OutputLimit)
+            ));
+            // Even invalid JSON inside the first excess element is unread.
+            let unread =
+                format!(r#"{{"data":[[{accepted}{comma}[not-json]]],"type":"a(suuutuusu)"}}"#);
+            assert!(matches!(
+                parse_dump(unread.as_bytes(), max_entries),
+                Err(Error::OutputLimit)
+            ));
+        }
+        // A large, valid list of tiny rows also stops at the zero-row budget.
+        let tiny_rows = "[],".repeat(20_000) + "[]";
+        let bytes = format!(r#"{{"type":"a(suuutuusu)","data":[[{tiny_rows}]]}}"#);
+        assert!(matches!(
+            parse_dump(bytes.as_bytes(), 0),
+            Err(Error::OutputLimit)
+        ));
+        // Within the budget the oversized tuple is malformed, not a limit error.
+        let bytes = format!(r#"{{"type":"a(suuutuusu)","data":[[[{oversized}]]]}}"#);
+        assert!(matches!(
+            parse_dump(bytes.as_bytes(), 1),
+            Err(Error::Json(_))
+        ));
+    }
+    #[test]
+    fn dump_validates_envelope_rows_and_empty_results() {
+        for bytes in [
+            br#"{"type":"a(suuutuusu)","data":[[]]}"#.as_slice(),
+            br#"{"data":[[]],"type":"a(suuutuusu)"}"#,
+        ] {
+            assert!(parse_dump(bytes, 0).unwrap().is_empty());
+        }
+        // Preserve systemd's explicitly permitted empty FDNAME.
+        let bytes = serde_json::to_vec(&json!({
+            "type": "a(suuutuusu)", "data": [[row("", 1)]]
+        }))
+        .unwrap();
+        assert_eq!(parse_dump(&bytes, 1).unwrap()[0].name.as_str(), "");
+        for bytes in [
+            br#"{"type":"wrong","data":[[]]}"#.as_slice(),
+            br#"{"data":[[]],"type":"wrong"}"#,
+            br#"{"type":"a(suuutuusu)","type":"a(suuutuusu)","data":[[]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[]],"data":[[]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[],[]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[["x",1,2,3,4,5,6,"p",7,8]]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[["x",1,2,3,-4,5,6,"p",7]]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[["x",1,2,3,4,5,6,[],7]]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[["bad:name",1,2,3,4,5,6,"p",7]]]}"#,
+            br#"{"type":"a(suuutuusu)","data":[[]]} trailing"#,
+        ] {
+            assert!(parse_dump(bytes, 1).is_err(), "{bytes:?}");
+        }
+        assert!(matches!(
+            parse_dump(&vec![b' '; MAX_OUTPUT_BYTES + 1], 0),
+            Err(Error::OutputLimit)
+        ));
     }
     #[test]
     fn introspection_accepts_standard_external_doctype_without_entity_resolution() {
