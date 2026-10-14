@@ -19,9 +19,9 @@ review in [REVIEW-0.md](REVIEW-0.md) and prior planning in `.transcript/`.
 
 The foundation provides independent resource, bundle, opaque state, invocation,
 and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
-codec, and a sealed Linux state-image carrier. Bundle delivery protocols,
-systemd integration, and cooperative lifecycle coordination are not
-implemented yet. The delivery sequence is proposed in
+codec, a sealed Linux state-image carrier, and classic socket-activation
+metadata handling. Bundle delivery protocols, fdstore custody, and cooperative
+lifecycle coordination are not implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -39,13 +39,15 @@ with the reading map in
 | `handle-off-unix-rights` (`handles/unix-rights`) | Blocking Unix datagram payload/FD transfer using rustix |
 | `handle-off-state-rkyv` (`state/rkyv`) | Checked bounded rkyv wire codec for manifests and state metadata |
 | `handle-off-state-memfd` (`state/memfd`) | Sealed Linux memfd byte images with positional reads |
+| `handle-off-activation` (`systemd/activation`) | Classic LISTEN_* parsing and explicit inherited-FD claiming |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
 only `stdio` and `invocation`. Descriptor APIs require Unix. Native invocation
 types and metadata can be used without descriptor operations.
 The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
-rkyv and `state-memfd` adds rustix on Linux. None are included in `local`.
+rkyv and `state-memfd` adds rustix on Linux; `activation` adds rustix on Unix.
+None are included in `local`.
 
 ## Local use
 
@@ -123,3 +125,25 @@ A composition test sends a sealed manifest image plus two independent state
 images in one datagram and restores all of them; its descriptor ordering is an
 explicit fixture convention, not a delivery protocol. See the
 [state checkpoint](doc/state/carriers0.glm53max.md).
+
+## Socket activation
+
+`handle-off-activation` parses classic `LISTEN_PID`/`LISTEN_FDS`/
+`LISTEN_FDNAMES` snapshots — read-only capture, no environment mutation —
+and separates pure validation (foreign PIDs ignored before their count or
+names are inspected; strict PID/count/tag rules with per-count bounds) from
+claiming the inherited descriptors, which is an explicit `unsafe` operation:
+the caller must establish exclusive, valid, otherwise-unowned slots that
+neither parsing nor `fcntl` probing can prove. Claiming takes all owners,
+sets CLOEXEC preserving other flags, and closes the entire batch on failure.
+Tags are nonunique manager labels; `take_unique` errors leave every owner in
+the batch. The optional newer `LISTEN_PIDFDID` process-identity check is not
+implemented.
+
+The example's tests use a synthetic single-threaded manager that installs
+real TCP listeners on inherited FD 3/4 and execs the consumer — real exec
+boundary and sockets, but **not** live systemd: no manager, socket unit,
+sd_notify, or fdstore participates. The crate stays runtime-free with rustix
+as its only dependency. A focused review's P2 names-parser finding (segment
+collection before the count check) is fixed and regression-covered. See the
+[activation checkpoint](doc/systemd/activation0.glm53max.md).
