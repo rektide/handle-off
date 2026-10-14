@@ -1,0 +1,10 @@
+[package]
+name = "handle-off-state"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Opaque application state formats and byte/carrier associations"
+
+[dependencies]
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }

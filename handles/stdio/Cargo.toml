@@ -1,0 +1,7 @@
+[package]
+name = "handle-off-stdio"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Explicit borrowed and owned stdin/stdout/stderr descriptor roles"

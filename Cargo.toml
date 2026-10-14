@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["handle-off"]
+members = ["handle-off", "handles/core", "handles/bundle", "handles/stdio", "state/core", "invocation/core", "examples/local"]
 
 [workspace.package]
 version = "0.1.0"

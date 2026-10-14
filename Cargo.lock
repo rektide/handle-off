@@ -5,3 +5,44 @@ version = 4
 [[package]]
 name = "handle-off"
 version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-invocation",
+ "handle-off-state",
+ "handle-off-stdio",
+]
+
+[[package]]
+name = "handle-off-bundle"
+version = "0.1.0"
+dependencies = [
+ "handle-off-handles",
+ "handle-off-state",
+]
+
+[[package]]
+name = "handle-off-handles"
+version = "0.1.0"
+
+[[package]]
+name = "handle-off-invocation"
+version = "0.1.0"
+
+[[package]]
+name = "handle-off-local-example"
+version = "0.1.0"
+dependencies = [
+ "handle-off",
+]
+
+[[package]]
+name = "handle-off-state"
+version = "0.1.0"
+dependencies = [
+ "handle-off-handles",
+]
+
+[[package]]
+name = "handle-off-stdio"
+version = "0.1.0"

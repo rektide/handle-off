@@ -1,0 +1,11 @@
+[package]
+name = "handle-off-bundle"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Named resource bundles and codec-independent manifest validation"
+
+[dependencies]
+handle-off-handles = { path = "../core", version = "0.1.0" }
+handle-off-state = { path = "../../state/core", version = "0.1.0" }
