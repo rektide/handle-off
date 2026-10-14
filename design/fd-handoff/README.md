@@ -22,6 +22,8 @@ sources:
   blocking datagram rights API, ownership/truncation behavior, and dependency cost.
 - [State carrier report](../../doc/state/carriers0.glm53max.md): independent
   rkyv wire encoding and sealed memfd storage, limits, and composition evidence.
+- [Socket activation report](../../doc/systemd/activation0.glm53max.md): classic
+  named-descriptor adoption, explicit ownership boundary, and reviewed parser fix.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
   handle/bundle/state vocabulary, cooperative continuity, two proving
   applications, and draft epics/tickets. Current proposal for review.

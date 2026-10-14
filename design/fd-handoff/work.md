@@ -135,5 +135,19 @@ and Linux sealed-memfd carrier implementations, with core contracts independent.
 Sol reports 27 passing tests including multiple image/manifest transfer; focused
 state review found no substantive issues. The
 [state carrier report](../../doc/state/carriers0.glm53max.md) and README landed
-as `54a6dd3c`; E2.2 is closed. Independently usable multi-FD
-activation adoption (E3.1) is the next implementation slice in progress.
+as `54a6dd3c`; E2.2 is closed.
+
+### Independent activation complete
+
+E3.1 landed `8274a60f`. Review found allocation amplification in malformed name
+lists; G bounded segment collection to declared count plus one and added a
+regression (`19baae26`). Parent inspected the fix. Six activation tests and two
+real-exec synthetic-manager tests passed, as did targeted clippy/format checks.
+The [activation report](../../doc/systemd/activation0.glm53max.md) and README
+landed `69c92d84`; E3.1 is closed. The crate supports classic LISTEN_PID/FDS/FDNAMES,
+not the newer optional PIDFDID validation. No live-systemd conformance run is
+claimed for the synthetic-manager tests.
+
+E2.3 is in progress: sample direct bundle protocol over already-connected Unix
+datagrams, with bounded manifest/descriptor association and explicit delivery
+acknowledgment distinct from command completion or lifecycle commit.
