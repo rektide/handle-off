@@ -1,21 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["clid", "clid-context", "clid-discovery", "clid-client", "clid-daemon", "examples/clidd", "examples/clidc"]
+members = ["handle-off"]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.1.0"
 edition = "2024"
-authors = ["Prefork Developers"]
+authors = ["Handle-off Developers"]
 license = "Apache-2.0"
-repository = "https://github.com/prefork/prefork-rs"
-
-[workspace.dependencies]
-clap = { version = "*", features = ["derive", "unicode", "wrap_help"] }
-anyhow = "*"
-thiserror = "*"
-tokio = { version = "*", features = ["rt-multi-thread", "macros", "fs", "net", "io-util", "signal"] }
-serde = { version = "*", features = ["derive"] }
-serde_json = "*"
-tracing = "*"
-tracing-subscriber = { version = "*", features = ["env-filter"] }
-directories = "*"

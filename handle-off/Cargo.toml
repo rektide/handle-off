@@ -1,0 +1,7 @@
+[package]
+name = "handle-off"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Composable resource handoff: pass, retain, and recover open resources together with the information needed to continue using them"
