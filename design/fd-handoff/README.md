@@ -14,6 +14,8 @@ sources:
 
 ## Proposed architecture
 
+- [Cooperative lifecycle checkpoint](lifecycle0.gpt6a.md): custody versus execution
+  permission, direct control channel, manager generations, and alias limitations.
 - [Active work map](work.md): native epics, retained legacy tickets, and the
   authorized implementation starting point.
 - [Foundation implementation report](../../doc/foundation/implementation0.gpt61s.md):
