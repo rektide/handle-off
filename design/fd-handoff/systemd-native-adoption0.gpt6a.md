@@ -1,13 +1,13 @@
 ---
 type: ArchitectureProposal
 title: Systemd-native inventory and application-shaped adoption
-description: Make semantic named resources and application schemas sufficient for simple recovery, with explicit completeness and authority only where the workload needs them; retain manifests as an optional richer representation.
+description: Make semantic named resources and application schemas sufficient for simple recovery, including persistent mutable backing as a future application choice, with explicit completeness and authority where needed and manifests as an optional richer representation.
 resource: /design/fd-handoff/systemd-native-adoption0.gpt6a.md
 status: draft
 generated: { by: "model:openai/gpt-6-astra#medium", at: 2026-10-14 }
 sources:
   - resource: "opencode://ses_ec5b335ffffeIyNK21aCZL3jEw"
-    title: "Commissioned design: audited current contracts and local systemd source; designed names-first adoption, completeness choices, persistent custody, and proposed landing slices"
+    title: "Commissioned design and mutable-state steering: audited contracts/systemd source; designed names-first adoption, optional completeness, persistent immutable or mutable custody, and proposed landing slices"
   - resource: "opencode://ses_ec616a6eaffe0I3U3HgN4tJ0Ho"
     title: "Parent commission and human direction: systemd inventory, application interpretation, optional manifest, and no implementation authorization"
   - resource: /design/fd-handoff/naming-opportunities0.gpt6a.md
@@ -325,6 +325,77 @@ re-offered or renamed. A transient capture references that existing custody;
 its retirement must not remove persistent entries. This differs from `ho1` v1,
 whose resource slots belong to the selected transient generation.
 
+### Mutable backing is a different, important use of that lifetime
+
+The operator also raised mutable retained state, with a memfd-backed SQLite
+database reached through `/proc/self/fd/N` as an exploratory illustration. This
+makes the motivation stronger: **a named resource can be the application's
+long-lived working state, not merely a package sent to its replacement**.
+The selected architecture need not serialize an entire world at every handover.
+
+For example, `state.catalog` could name an application-owned mutable backing
+resource, while `cache.catalog` remains an independently replaceable derived
+image. Names express roles, not a universal durability or consistency guarantee.
+If `state.catalog` is authoritative, missing or corrupt state is an error requiring
+the application's recovery policy; the cache example's rebuild fallback cannot
+be copied blindly. A manifest remains optional when the application's known
+schema and backing format contain all required associations.
+
+Distinguish three useful cases:
+
+| Resource | What crosses process replacement | What makes adoption legitimate |
+| --- | --- | --- |
+| Sealed transport snapshot | An immutable capture at a named cut | Validate image and exact required resources; correlate release for live continuation. |
+| Mutable backing, quiescent handover | The same retained store, after old writers stop at an application-defined consistent boundary | Validate/recover its committed root or transactions; relinquish old access and grant new ownership. A small capture may still hold process-local stream state. |
+| Mutable backing during live operation/crash | Ongoing application state, possibly interrupted mid-update | The backing format's actual interruption recovery and concurrency rules; fdstore supplies references, not transactions. |
+
+A mapping address, Rust pointer, mutex owner or runtime object from the old
+process is not a portable persisted reference. A shared arena needs offsets or
+another reconstructible representation and appropriate process-death handling.
+Reopening a format must not depend on the inherited FD retaining the old number.
+Writable aliases require explicit coordination; holding another FD is neither a
+writer lock nor revocation of the old actor. Checks that are safe on immutable
+images can race on mutable bytes, so validate at a stable boundary or use the
+format's supported concurrent-read protocol.
+
+Crash consistency is application/format work: transactions, a journal, committed
+roots, or another suitable method. Keeping bytes alive does not make interrupted
+multiword writes atomic. A transaction in one backing resource does not commit
+two datasets, buffered userspace state and socket output together. A handover may
+still need to park writers, finish/abort transactions, capture pending I/O, and
+record which database revision that capture corresponds to. Even a database with
+correct transaction recovery cannot retract bytes already sent to a peer.
+Mutable backing is not automatically arbitrary-crash stream continuity.
+
+The SQLite thought experiment deserves a small, separate feasibility probe if
+selected. `/proc/self/fd/N` gives a process-local path to an FD; it does **not** by
+itself establish that SQLite's ordinary filesystem VFS works correctly there.
+Before claiming support, check:
+
+- path canonicalization and reopening behavior, including whether SQLite opens
+  another description or resolves a memfd label that cannot be reopened;
+- journal, WAL and SHM naming/opening, temporary files and their retention paths;
+- locking and shared-memory behavior across intended processes and connection
+  lifetimes, including inherited references that can prolong lock/resource life;
+- a fresh successor's changed descriptor number and stable rediscovery of every
+  required backing component, plus crash recovery for the chosen journal mode.
+
+Choosing in-memory journals or a custom VFS changes the recovery contract; neither
+is an automatic fix. A normal filesystem-backed database could be a simpler
+application choice. No database dependency or VFS work is selected here.
+Retained memfd state is volatile across unsupported transitions and power loss;
+process survival, crash consistency and durable storage are separate properties.
+
+The existing `state-memfd` API intentionally requires write seals and rejects
+mutable backing. Keep that guarantee. An app can manage its mutable FD using
+ordinary OS APIs and the existing activation/fdstore primitives; introduce a
+separate backing helper only for demonstrated shared needs. Do not weaken sealed
+image validation or add database knowledge to the carrier or named inventory.
+Any compact integrity digest refers to a frozen revision, not a promise that
+live mutable bytes remain equal to a past hash. LUO support for a chosen mutable
+backing and its recovery semantics needs explicit evidence, not inference from
+the successful immutable-image path.
+
 ### Inserting and replacing
 
 There is no `put(name, fd)` replacement operation. Offering a second, different
@@ -426,6 +497,8 @@ Recommended progression:
   catalog compatibility or paired session recovery is an adequate schema.
   Typed application structs hold successful selections. Avoid a universal trait
   lattice or declarative registry before a second consumer establishes the need.
+  A mutable backing's transaction/open/recovery API stays with that application
+  or storage library, outside name selection and descriptor custody.
 - **Optional projection goes downstream.** A manifest builder can describe a
   validated application's resources/aliases/ranges for generic transport or
   inspection. It needs an explicit capture/generation when one is meaningful;
@@ -500,6 +573,13 @@ These are decision-ready slices, not new tickets or implementation assignments.
    isolated deployment evidence; synthetic missing-socket tests are useful but
    do not establish actual kernel preservation support.
 
+A mutable-backing feasibility probe is an independent optional branch, not a
+prerequisite for those slices: choose one format and one ownership/recovery rule,
+exercise orderly replacement and interrupted mutation, and verify state rather
+than just retained bytes. For the SQLite illustration, test sidecar/reopen/locking
+behavior and fresh-process FD renumbering before designing any reusable adapter.
+That investigation can conclude the ordinary VFS/path approach is unsuitable.
+
 ## Alternatives and decisions for the operator
 
 **Recommended:** application naming conventions and executable schema examples
@@ -522,7 +602,8 @@ Alternatives remain reasonable in their own scopes:
 Consequential choices before implementation are: which first real application
 schema to demonstrate; whether cache update gaps/rebuild are acceptable; whether
 dynamic sessions require exact all-session continuity or independent recovery;
-and where the expected handover/capture selection comes from across restart.
+where the expected handover/capture selection comes from across restart; and
+whether to commission a separate mutable-backing feasibility probe.
 The first example can proceed after selection without resolving a universal
 semantic-name wire standard, manager transaction protocol, or selective scheduler.
 
