@@ -126,7 +126,12 @@ landed as `70a72bee`. The primitive uses rustix and explicitly supports Unix
 datagrams, with borrowed send, owned receive, CLOEXEC policy and truncation
 cleanup. Sol reported 19 passing tests plus clippy/format/feature checks. Local
 consumers retain their runtime/codec/transport-free dependency graph. Focused
-review remains underway before the ticket closes.
+review completed with no substantive issues, including source-level confirmation
+of rustix cleanup, ancillary-padding limit enforcement, and CLOEXEC behavior.
+`pfd-handle-off-direct-rights` is closed with that evidence.
 
-E2.2 is now in progress: separate optional rkyv representation/validation and
-Linux sealed-memfd carrier implementations, with core contracts kept independent.
+E2.2 code landed as `0c1c9a90`: separate optional rkyv representation/validation
+and Linux sealed-memfd carrier implementations, with core contracts independent.
+Sol reports 27 passing tests including multiple image/manifest transfer; focused
+state review and documentation are underway. Independently usable multi-FD
+activation adoption (E3.1) is the next implementation slice in progress.
