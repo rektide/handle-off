@@ -97,3 +97,16 @@ The remote binary/dependency comparison was separated from E1.3 into
 `pfd-handle-off-direct-build-baseline`, dependent on the real CLI backend/result
 work. It cannot be measured against a nonexistent transport and should not block
 local-only capabilities. This adds one child to the original materialized map.
+
+### Foundation review complete
+
+Followup review (`opencode://ses_ec70f2b7fffePk1evnZ4cGPhJb`) found no substantive
+ownership, membership, state-range, native-byte or feature-isolation issues.
+It additionally verified a workspace/all-features check on stable Rust 1.93.1.
+The inherited nightly development-toolchain selection remains unchanged; it is
+not a demonstrated library requirement. No older MSRV has been verified.
+
+E1 and E5.1 are closed with implementation and review evidence. Future adoption
+diagnostics and transport-facing API conveniences were noted on their relevant
+tickets; they do not block the foundation. Descriptor delivery, manager custody,
+and restart continuity remain subsequent work, not claims of this local slice.
