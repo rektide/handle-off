@@ -1,0 +1,14 @@
+[package]
+name = "handle-off-systemd-generation"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Bounded generation FDNAME addressing and non-destructive borrowed catalog discovery"
+
+[dependencies]
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }
+
+[dev-dependencies]
+handle-off-state = { path = "../../state/core", version = "0.1.0" }

@@ -19,6 +19,8 @@
 //! cooperative replacement are not implemented yet.
 //! `handover` adds backend-free generation-scoped permission bookkeeping, retained
 //! evidence and fail-closed quarantine; it does not execute or park applications.
+//! `systemd-generation` adds bounded addressing and borrowed generation catalogs;
+//! it does not publish, retire, validate marker contents, or authorize resumed I/O.
 //! `rendezvous` adds endpoint-resolution vocabulary; `rendezvous-local` adds the
 //! sample explicit/environment/XDG/local policy. Candidates are unverified; neither
 //! feature connects, launches a server, or enters the `local` feature group.
@@ -64,5 +66,8 @@ pub use handle_off_systemd_inspect as systemd_inspect;
 
 #[cfg(feature = "handover")]
 pub use handle_off_handover as handover;
+
+#[cfg(feature = "systemd-generation")]
+pub use handle_off_systemd_generation as systemd_generation;
 #[cfg(feature = "systemd-notify")]
 pub use handle_off_systemd_notify as systemd_notify;

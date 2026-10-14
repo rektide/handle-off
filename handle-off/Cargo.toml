@@ -25,6 +25,7 @@ rendezvous = ["dep:handle-off-rendezvous"]
 rendezvous-local = ["dep:handle-off-rendezvous-local", "rendezvous"]
 systemd-inspect = ["dep:handle-off-systemd-inspect"]
 handover = ["dep:handle-off-handover"]
+systemd-generation = ["dep:handle-off-systemd-generation"]
 
 [dependencies]
 handle-off-handles = { path = "../handles/core", version = "0.1.0", optional = true }
@@ -43,3 +44,4 @@ handle-off-rendezvous = { path = "../rendezvous/core", version = "0.1.0", option
 handle-off-rendezvous-local = { path = "../rendezvous/local", version = "0.1.0", optional = true }
 handle-off-systemd-inspect = { path = "../systemd/inspect", version = "0.1.0", optional = true }
 handle-off-handover = { path = "../handover/core", version = "0.1.0", optional = true }
+handle-off-systemd-generation = { path = "../systemd/generation", version = "0.1.0", optional = true }

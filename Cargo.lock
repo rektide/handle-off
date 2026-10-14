@@ -105,6 +105,7 @@ dependencies = [
  "handle-off-state-rkyv",
  "handle-off-stdio",
  "handle-off-systemd-fdstore",
+ "handle-off-systemd-generation",
  "handle-off-systemd-inspect",
  "handle-off-systemd-notify",
  "handle-off-transport-unix",
@@ -225,6 +226,15 @@ version = "0.1.0"
 dependencies = [
  "handle-off-systemd-notify",
  "handle-off-unix-rights",
+]
+
+[[package]]
+name = "handle-off-systemd-generation"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-state",
 ]
 
 [[package]]
