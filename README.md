@@ -18,8 +18,9 @@ review in [REVIEW-0.md](REVIEW-0.md) and prior planning in `.transcript/`.
 ## Status
 
 The foundation provides independent resource, bundle, opaque state, invocation,
-and stdio crates, plus raw Unix datagram descriptor transfer. Bundle delivery
-protocols, systemd integration, and cooperative lifecycle coordination are not
+and stdio crates, plus raw Unix datagram descriptor transfer, a checked state
+codec, and a sealed Linux state-image carrier. Bundle delivery protocols,
+systemd integration, and cooperative lifecycle coordination are not
 implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
@@ -36,12 +37,15 @@ with the reading map in
 | `handle-off-stdio` (`handles/stdio`) | Explicit borrowed/owned stdin, stdout, stderr roles |
 | `handle-off-invocation` (`invocation/core`) | Native lossless argv, environment, and cwd snapshots |
 | `handle-off-unix-rights` (`handles/unix-rights`) | Blocking Unix datagram payload/FD transfer using rustix |
+| `handle-off-state-rkyv` (`state/rkyv`) | Checked bounded rkyv wire codec for manifests and state metadata |
+| `handle-off-state-memfd` (`state/memfd`) | Sealed Linux memfd byte images with positional reads |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
 `state`, `stdio`, and `invocation` enable individual reexports; `local` enables
 only `stdio` and `invocation`. Descriptor APIs require Unix. Native invocation
 types and metadata can be used without descriptor operations.
-The separate `unix-rights` feature adds rustix; it is not included in `local`.
+The separate `unix-rights` feature adds rustix; `state-rkyv` adds exact-pinned
+rkyv and `state-memfd` adds rustix on Linux. None are included in `local`.
 
 ## Local use
 
@@ -96,3 +100,26 @@ path before binding. Failures can leave the path for deliberate cleanup. The raw
 primitive does not authenticate peers; applications own endpoint permissions and
 adoption policy. Received FDs have CLOEXEC; atomicity of that setting varies by
 Unix platform. See the [rights checkpoint](doc/transport/rights0.glm53max.md).
+
+## State images
+
+`handle-off-state-rkyv` encodes manifests or standalone opaque state metadata
+into a versioned envelope — wire version 1, pinned rkyv 0.8.18 configured for
+little-endian, 32-bit relative pointers, unaligned archives. Encoding is
+byte-bounded; decoding validates the envelope, bytechecks the archive within
+node/content budgets, then repeats full semantic validation on the rebuilt
+types. Limits bound input and logical content, not exact peak allocator
+memory; choose them for your trust boundary. There is no checksum or
+authentication: bytecheck validates structure, not trust.
+
+`handle-off-state-memfd` creates immutable sealed Linux memfd images — the
+full WRITE/GROW/SHRINK/SEAL seal set is mandatory and re-verified at adoption,
+with a 64 MiB ceiling — and reads them positionally, leaving duplicated
+descriptors' shared offsets untouched. The carrier depends on no codec and the
+codec on no carrier; seals are immutability, not authentication or application
+compatibility.
+
+A composition test sends a sealed manifest image plus two independent state
+images in one datagram and restores all of them; its descriptor ordering is an
+explicit fixture convention, not a delivery protocol. See the
+[state checkpoint](doc/state/carriers0.glm53max.md).
