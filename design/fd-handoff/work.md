@@ -133,5 +133,7 @@ of rustix cleanup, ancillary-padding limit enforcement, and CLOEXEC behavior.
 E2.2 code landed as `0c1c9a90`: separate optional rkyv representation/validation
 and Linux sealed-memfd carrier implementations, with core contracts independent.
 Sol reports 27 passing tests including multiple image/manifest transfer; focused
-state review and documentation are underway. Independently usable multi-FD
+state review found no substantive issues. The
+[state carrier report](../../doc/state/carriers0.glm53max.md) and README landed
+as `54a6dd3c`; E2.2 is closed. Independently usable multi-FD
 activation adoption (E3.1) is the next implementation slice in progress.

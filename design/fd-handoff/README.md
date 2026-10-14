@@ -20,6 +20,8 @@ sources:
   delivered APIs, extraction owners, feature graph, and measured local baseline.
 - [Descriptor transport report](../../doc/transport/rights0.glm53max.md):
   blocking datagram rights API, ownership/truncation behavior, and dependency cost.
+- [State carrier report](../../doc/state/carriers0.glm53max.md): independent
+  rkyv wire encoding and sealed memfd storage, limits, and composition evidence.
 - [Architecture draft 0](architecture0.gpt6a.md): composable crate families,
   handle/bundle/state vocabulary, cooperative continuity, two proving
   applications, and draft epics/tickets. Current proposal for review.
