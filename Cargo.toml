@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["handle-off", "handles/core", "handles/bundle", "handles/stdio", "handles/unix-rights", "state/core", "state/rkyv", "state/memfd", "systemd/activation", "systemd/notify", "systemd/fdstore", "transport/unix", "rendezvous/core", "rendezvous/local", "invocation/core", "examples/local", "examples/raw-rights", "examples/activation", "examples/direct-bundles"]
+members = ["handle-off", "handles/core", "handles/bundle", "handles/stdio", "handles/unix-rights", "state/core", "state/rkyv", "state/memfd", "systemd/activation", "systemd/notify", "systemd/fdstore", "systemd/inspect", "transport/unix", "rendezvous/core", "rendezvous/local", "invocation/core", "examples/local", "examples/raw-rights", "examples/activation", "examples/direct-bundles"]
 
 [workspace.package]
 version = "0.1.0"

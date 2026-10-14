@@ -14,8 +14,9 @@
 //! descriptors without fdstore, codec, or bundle dependencies. `transport-unix`
 //! selects the sample datagram bundle delivery/acceptance protocol. `systemd-notify`
 //! provides notifications/ordering barriers; `systemd-fdstore` adds unverified store
-//! offers, explicit removals and application verification hooks. Native manager
-//! inspection, generation custody and cooperative replacement are not implemented yet.
+//! offers, explicit removals and application verification hooks. `systemd-inspect`
+//! adds optional bounded busctl service/metadata inspection. Generation custody and
+//! cooperative replacement are not implemented yet.
 //! `rendezvous` adds endpoint-resolution vocabulary; `rendezvous-local` adds the
 //! sample explicit/environment/XDG/local policy. Candidates are unverified; neither
 //! feature connects, launches a server, or enters the `local` feature group.
@@ -55,5 +56,8 @@ pub use handle_off_systemd_fdstore as systemd_fdstore;
 pub use handle_off_rendezvous as rendezvous;
 #[cfg(feature = "rendezvous-local")]
 pub use handle_off_rendezvous_local as rendezvous_local;
+
+#[cfg(feature = "systemd-inspect")]
+pub use handle_off_systemd_inspect as systemd_inspect;
 #[cfg(feature = "systemd-notify")]
 pub use handle_off_systemd_notify as systemd_notify;
