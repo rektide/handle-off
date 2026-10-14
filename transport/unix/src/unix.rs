@@ -257,6 +257,12 @@ impl Endpoint {
     pub fn is_poisoned(&self) -> bool {
         self.poisoned
     }
+    /// Planned correlation for the next offer under exclusive endpoint use. This
+    /// does not submit it or promise success; useful for a separate control session
+    /// whose abort must also correlate when a delivery ACK is lost.
+    pub fn next_offer_id(&self) -> u64 {
+        self.next_offer
+    }
     /// No timeout is installed by the protocol. Configure the caller's socket
     /// before construction; a missing ACK on a blocking endpoint may wait forever.
     pub fn send<H: AsFd>(
@@ -392,6 +398,10 @@ pub struct Offer<'a> {
     delivery: Delivery,
 }
 impl Offer<'_> {
+    /// Actual offer correlation, without accepting custody or authorizing execution.
+    pub fn offer_id(&self) -> u64 {
+        self.id
+    }
     pub fn delivery(&self) -> &Delivery {
         &self.delivery
     }
