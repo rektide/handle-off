@@ -226,3 +226,30 @@ extend the same agent across the entire epic sequence. Handoffs should contain
 commits, relevant paths/APIs, decisions and limits, remaining tickets, checks, and
 owned uncommitted work—not a transcript dump. Apply the same discipline to review
 and documentation sessions as they grow.
+
+### Direct successor checkpoint and fresh-agent handoff
+
+The large implementation session finished this round and retired. Commits:
+`4fb48b40` exposes read-only bundle offer correlation; `f16957ff` implements
+separate cooperative successor control; `93833698` documents the checkpoint and
+retirement-unwind boundary. See the [direct handover report](../../doc/handover/direct0.gpt61s.md).
+
+Reported verification: 116 workspace tests passed, one optional live test skipped,
+plus pinned-toolchain clippy, formatting, strict docs and feature checks. Fresh
+source review found no execution-authority safety blockers and confirmed actual
+same-live-UnixStream continuation after release, not reopening a resource.
+
+Two limits matter to the next session:
+
+- `Receiver::retire` callback unwinding drops its by-value delivery/notice rather
+  than returning them. It sends no retirement acknowledgment; old execution stays
+  parked. Returned-error retention is not universal panic retention.
+- The real-process fixture covers one stream/bundle. E4.2 remains open for its
+  original multiple-resource-bundle process acceptance, despite the implemented
+  adapter and passing single-stream lifecycle demonstration.
+
+No next implementation slice was dispatched after this round. Start a fresh
+implementation session for additional acceptance coverage or subsequent manager
+publication/retirement, systemd replacement, and thin-client/bus-proxy integration.
+The reports, native ticket notes and commits above are the compact handoff; the
+retired agent's full transcript need not be loaded.

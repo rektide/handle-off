@@ -34,6 +34,8 @@ sources:
   bounded queries, named metadata verification, and incarnation/identity limits.
 - [Handover core report](../../doc/handover/core0.gpt61s.md): cooperative authority
   transitions, retained failures, scoped approvals, and trusted-application limits.
+- [Direct handover report](../../doc/handover/direct0.gpt61s.md): separate successor
+  control, same-connection process evidence, and explicit unwind/coverage limits.
 - [Generation catalog report](../../doc/systemd/generations0.gpt61s.md): bounded
   manager tags, borrowed multi-generation discovery, and manifest associations.
 - [Rendezvous report](../../doc/rendezvous/implementation0.glm53max.md): pure
