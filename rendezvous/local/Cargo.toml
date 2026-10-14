@@ -1,0 +1,10 @@
+[package]
+name = "handle-off-rendezvous-local"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "Sample explicit/environment/XDG-runtime/local rendezvous policy over caller-supplied names"
+
+[dependencies]
+handle-off-rendezvous = { path = "../core", version = "0.1.0" }
