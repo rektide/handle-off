@@ -40,6 +40,8 @@ sources:
     title: Separate inherited-descriptor claiming boundary, contrasted with read-only inspection
   - resource: /rust-toolchain.toml
     title: Current pinned nightly-2026-09-30
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Optional bounded systemd inspection
@@ -229,7 +231,7 @@ attributed 87-test baseline or a fresh live-manager result. Reviewer
 `opencode://ses_ec6f1618effeapZzCE6xoMvdTD`, via parent dispatch, confirmed
 that `00550c3b` fixes the JSON allocation issue while retaining exact structural
 checks, with no new findings. That confirmation was source-only, without a test
-rerun. The parent subsequently closed `pfd-handle-off-systemd-fdstore` (E3.2).
+rerun. The parent subsequently closed `handoff-systemd-fdstore` (E3.2).
 
 The reviewer reported no other direct low-level custody-verifier blocker, while
 emphasizing MainPID-only target pinning, per-call rather than cross-step

@@ -59,6 +59,8 @@ sources:
     title: Doc-comment bracket-escape repair
   - resource: /transport/unix/src/lib.rs
     title: Doc-comment bracket-escape repair
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Service notifications, ordering barriers and fdstore offers
@@ -245,7 +247,7 @@ inside the concurrent resolver author's larger comment revision; they were
 preserved and verified but left for that author's checkpoint rather than
 committing another session's intertwined work.
 
-## Acceptance accounting: pfd-handle-off-systemd-fdstore
+## Acceptance accounting: handoff-systemd-fdstore
 
 Acceptance criteria (architecture E3.2): "Store/remove/barrier operations;
 fake-manager checks; capacity and unsupported verification surfaced

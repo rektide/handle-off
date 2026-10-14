@@ -33,6 +33,8 @@ sources:
     title: Facade integration point owned by the concurrent slice
   - resource: /Cargo.toml
     title: Workspace membership integration point owned by the concurrent slice
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Rendezvous endpoint contract and sample explicit/env/XDG/local policy
@@ -228,7 +230,7 @@ this list records the original handoff, not an instruction to duplicate that wor
    `UnixDatagram` bypasses resolution entirely — that path needs no rendezvous feature.
    Connect via `Endpoint::socket_addr()`.
 
-## Acceptance accounting: pfd-handle-off-direct-rendezvous
+## Acceptance accounting: handoff-direct-rendezvous
 
 Acceptance criteria (architecture E2.4): "Explicit/env/local/XDG resolver with
 caller-owned names; connected-endpoint injection bypasses resolution; discovery never

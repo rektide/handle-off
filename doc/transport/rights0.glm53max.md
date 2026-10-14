@@ -1,7 +1,7 @@
 ---
 type: ImplementationReport
 title: Raw Unix datagram rights transfer
-description: Checkpoint record of the Sol-implemented blocking SCM_RIGHTS primitive covering API and transport limits, borrowed-send/owned-receive ownership, CLOEXEC policy, truncation cleanup, rustix dependency cost, and pfd-handle-off-direct-rights acceptance accounting.
+description: Checkpoint record of the Sol-implemented blocking SCM_RIGHTS primitive covering API and transport limits, borrowed-send/owned-receive ownership, CLOEXEC policy, truncation cleanup, rustix dependency cost, and handoff-direct-rights acceptance accounting.
 resource: /doc/transport/rights0.glm53max.md
 status: implemented
 generated: { by: "model:zai-coding-plan/glm-5.3#max", at: 2026-10-14 }
@@ -36,6 +36,8 @@ sources:
     title: Repo-pinned mise-selected nightly-2026-09-30
   - resource: /README.md
     title: Maintained exposure whose pending checkpoint link this report completes
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Raw Unix datagram rights transfer
@@ -45,7 +47,7 @@ sources:
 descriptor-transport capability and its first external dependency. This
 checkpoint report records the primitive as implemented: API and transport
 limits, ownership and CLOEXEC policy, rejection cleanup, the cost of the
-rustix dependency, and acceptance evidence for `pfd-handle-off-direct-rights`.
+rustix dependency, and acceptance evidence for `handoff-direct-rights`.
 It was written by a separate documentation session
 (`opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB`) that read the commit and verified
 the maintained claims against the code; it did not re-run the implementation
@@ -196,7 +198,7 @@ transiently preventing cargo workspace manifest loading). That work is not
 part of this slice; the dependency statements above describe the committed
 `20c4edab` state.
 
-## Acceptance accounting: pfd-handle-off-direct-rights
+## Acceptance accounting: handoff-direct-rights
 
 Acceptance criteria (architecture E2.1): "Blocking send/receive with explicit
 ownership/CLOEXEC policy; real pipe/socket transfers; malformed/truncated

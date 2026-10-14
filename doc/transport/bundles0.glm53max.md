@@ -46,6 +46,8 @@ sources:
     title: Repo-pinned mise-selected nightly-2026-09-30
   - resource: /README.md
     title: Maintained exposure extended by this checkpoint
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Correlated Unix datagram bundle delivery and deliberate acceptance
@@ -267,11 +269,11 @@ build. This refines the lock-level enumeration in the
 closure.
 
 This is a **raw bundle example** baseline only. It is not the deliverable
-of `pfd-handle-off-direct-build-baseline`, which compares a chosen remote
+of `handoff-direct-build-baseline`, which compares a chosen remote
 build for the thin CLI client whose actual result sample (E5) is not built
 yet; that ticket remains open and is not closed by this measurement.
 
-## Acceptance accounting: pfd-handle-off-direct-protocol
+## Acceptance accounting: handoff-direct-protocol
 
 Acceptance criteria (architecture E2.3): "Select/document initial socket
 type; exact metadata/FD association, limits, delivery acknowledgment,

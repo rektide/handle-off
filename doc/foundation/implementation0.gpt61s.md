@@ -20,6 +20,8 @@ sources:
     title: Actual application image, import membership checks and parked-owner lease inspected
   - resource: "file:///usr/local/src/opencode-bus-proxy-git/repo/cli/daemon/src/handover.rs"
     title: Actual verified systemd transaction and positional sealed-image reads inspected
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Decomposed foundation
@@ -143,16 +145,16 @@ claimed. Remote comparison remains unavailable until a real transport exists.
 
 ## Acceptance accounting
 
-- `pfd-handle-off-foundation-inventory`: extraction map supplied above; toolkit vs
+- `handoff-foundation-inventory`: extraction map supplied above; toolkit vs
   application ownership grounded against actual deployed sources and retained
   legacy evidence.
-- `pfd-handle-off-foundation-contracts`: executable multi-bundle/extension/shared-
+- `handoff-foundation-contracts`: executable multi-bundle/extension/shared-
   reference contracts and explicit ownership checks implemented. Concrete wire-
   format/bootstrap, OS inspection and application compatibility remain later work.
-- `pfd-handle-off-foundation-workspace`: domain-grouped five-crate graph, optional
+- `handoff-foundation-workspace`: domain-grouped five-crate graph, optional
   facade and local dependency/size baseline implemented. The acceptance clause
   comparing a chosen remote build remains pending transport implementation.
-- `pfd-handle-off-cli-local`: explicit local handler, lossless native context and
+- `handoff-cli-local`: explicit local handler, lossless native context and
   redirected byte I/O implemented; no remote/session/replacement claim.
 
 Direction and remaining capabilities: [architecture](/design/fd-handoff/architecture0.gpt6a.md).

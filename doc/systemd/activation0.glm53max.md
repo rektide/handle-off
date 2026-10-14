@@ -1,7 +1,7 @@
 ---
 type: ImplementationReport
 title: Classic socket-activation parsing and inherited descriptor ownership
-description: Checkpoint record of the Sol-implemented E3.1 slice covering read-only LISTEN_* snapshot capture, pure metadata validation, the unsafe inherited-descriptor claim contract, duplicate-tag resolution, the synthetic-manager example, and pfd-handle-off-systemd-activation acceptance accounting.
+description: Checkpoint record of the Sol-implemented E3.1 slice covering read-only LISTEN_* snapshot capture, pure metadata validation, the unsafe inherited-descriptor claim contract, duplicate-tag resolution, the synthetic-manager example, and handoff-systemd-activation acceptance accounting.
 resource: /doc/systemd/activation0.glm53max.md
 status: implemented
 generated: { by: "model:zai-coding-plan/glm-5.3#max", at: 2026-10-14 }
@@ -40,6 +40,8 @@ sources:
     title: Repo-pinned mise-selected nightly-2026-09-30
   - resource: /README.md
     title: Maintained exposure extended by this checkpoint
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Classic socket-activation parsing and inherited descriptor ownership
@@ -252,7 +254,7 @@ distinct, every malformed-input class as a distinct error, bounded over-count
 rejection, non-UTF-8 names rejected without environment mutation, and
 selection-error ownership retention proven by peer EOF.
 
-## Acceptance accounting: pfd-handle-off-systemd-activation
+## Acceptance accounting: handoff-systemd-activation
 
 Acceptance criteria (architecture E3.1): "Multi-FD/name capture, PID
 validation, ownership and CLOEXEC handling; independent example accepts a

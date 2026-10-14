@@ -10,6 +10,8 @@ sources:
     title: "Implementation authorization, native ticket creation, FX preparation and Sol medium build coordination"
   - resource: /design/fd-handoff/architecture0.gpt6a.md
     title: "Architecture and acceptance criteria materialized in beads"
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Active work map
@@ -17,21 +19,24 @@ sources:
 The operator authorized building handle-off, with FX preparing the fresh
 workspace and Sol medium implementing coherent slices. The
 [architecture](architecture0.gpt6a.md) remains the design reference; native beads
-items own implementation status. The existing `pfd` tracker prefix is retained.
+items own implementation status. The tracker prefix is `handoff`: in October 2026
+all tickets, open and closed, were renamed from the `pfd`/`pfd-handle-off-` scheme
+(`handle-off` absorbed into the prefix, `bus-proxy` normalized to `busprox`),
+preserving histories and dependency edges through native `bd rename`.
 
 | Draft epic | Native epic |
 | --- | --- |
-| E1 Foundation | `pfd-handle-off-foundation` |
-| E2 Direct delivery | `pfd-handle-off-direct` |
-| E3 Activation/systemd | `pfd-handle-off-systemd` |
-| E4 Cooperative handover | `pfd-handle-off-handover` |
-| E5 Thin CLI | `pfd-handle-off-cli` |
-| E6 Bus-proxy/generality | `pfd-handle-off-bus-proxy` |
-| E7 Varlink | `pfd-handle-off-varlink` |
-| E8 Completion/introspection | `pfd-handle-off-completion` |
-| E9 One-off startup | `pfd-handle-off-one-off` |
-| E10 Application coordination | `pfd-handle-off-coordination` |
-| E11 Inspection | `pfd-handle-off-inspection` |
+| E1 Foundation | `handoff-foundation` |
+| E2 Direct delivery | `handoff-direct` |
+| E3 Activation/systemd | `handoff-systemd` |
+| E4 Cooperative handover | `handoff-handover` |
+| E5 Thin CLI | `handoff-cli` |
+| E6 Bus-proxy/generality | `handoff-busprox` |
+| E7 Varlink | `handoff-varlink` |
+| E8 Completion/introspection | `handoff-completion` |
+| E9 One-off startup | `handoff-one-off` |
+| E10 Application coordination | `handoff-coordination` |
+| E11 Inspection | `handoff-inspection` |
 
 All 35 draft child rows have native tickets, human-readable IDs, acceptance
 criteria, architecture pointers, and explicit parent-child edges. Initial
@@ -42,12 +47,12 @@ Dependency-cycle verification passed when the map was created.
 
 Four open legacy undertakings retain their histories through native renames:
 
-- `pfd-return-values` → `pfd-handle-off-cli-result` (E5.2).
-- `pfd-daemon-async-send-fd` → `pfd-handle-off-coordination-async` (E10.3,
+- `pfd-return-values` → `handoff-cli-result` (E5.2).
+- `pfd-daemon-async-send-fd` → `handoff-coordination-async` (E10.3,
   optional integration rather than mandatory runtime).
-- `pfd-daemon-extra-pipes` → `pfd-handle-off-direct-extra-handles`
+- `pfd-daemon-extra-pipes` → `handoff-direct-extra-handles`
   (additional named resource examples).
-- `pfd-daemon-sd-notify` → `pfd-handle-off-systemd-notify`
+- `pfd-daemon-sd-notify` → `handoff-systemd-notify`
   (service notification lifecycle alongside custody-specific work).
 
 Closed historical work remains historical; it is not claimed as completion of
@@ -94,7 +99,7 @@ local example measured 355,640 bytes; the report records the reproducible method
 and limits of that number. A focused ownership/contract review follows.
 
 The remote binary/dependency comparison was separated from E1.3 into
-`pfd-handle-off-direct-build-baseline`, dependent on the real CLI backend/result
+`handoff-direct-build-baseline`, dependent on the real CLI backend/result
 work. It cannot be measured against a nonexistent transport and should not block
 local-only capabilities. This adds one child to the original materialized map.
 
@@ -115,7 +120,7 @@ and restart continuity remain subsequent work, not claims of this local slice.
 
 ### Blocking descriptor transport underway
 
-Sol medium continues with `pfd-handle-off-direct-rights`: an independently usable
+Sol medium continues with `handoff-direct-rights`: an independently usable
 blocking SCM_RIGHTS crate, real multiple-descriptor transfer, explicit borrowed
 send/owned receive and truncation/CLOEXEC behavior. Runtime, codec, and bundle
 contracts stay outside the primitive. Checks use the pinned mise-selected Rust.
@@ -128,7 +133,7 @@ cleanup. Sol reported 19 passing tests plus clippy/format/feature checks. Local
 consumers retain their runtime/codec/transport-free dependency graph. Focused
 review completed with no substantive issues, including source-level confirmation
 of rustix cleanup, ancillary-padding limit enforcement, and CLOEXEC behavior.
-`pfd-handle-off-direct-rights` is closed with that evidence.
+`handoff-direct-rights` is closed with that evidence.
 
 E2.2 code landed as `0c1c9a90`: separate optional rkyv representation/validation
 and Linux sealed-memfd carrier implementations, with core contracts independent.

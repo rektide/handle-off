@@ -1,7 +1,7 @@
 ---
 type: ImplementationReport
 title: Checked state codec and sealed Linux carrier
-description: Checkpoint record of the Sol-implemented E2.2 slice covering the pinned-rkyv wire codec with bounded checked encode/decode, the mandatory-seal positional-I/O memfd carrier, their independence, dependency cost, and pfd-handle-off-direct-state-carriers acceptance accounting.
+description: Checkpoint record of the Sol-implemented E2.2 slice covering the pinned-rkyv wire codec with bounded checked encode/decode, the mandatory-seal positional-I/O memfd carrier, their independence, dependency cost, and handoff-direct-state-carriers acceptance accounting.
 resource: /doc/state/carriers0.glm53max.md
 status: implemented
 generated: { by: "model:zai-coding-plan/glm-5.3#max", at: 2026-10-14 }
@@ -44,6 +44,8 @@ sources:
     title: Repo-pinned mise-selected nightly-2026-09-30
   - resource: /README.md
     title: Maintained exposure extended by this checkpoint
+  - resource: "opencode://ses_ec6088918ffeIq7D1VJbVIsyA5"
+    title: "Ticket prefix rework to handoff IDs; bus-proxy ticket IDs normalized to busprox"
 ---
 
 # Checked state codec and sealed Linux carrier
@@ -221,7 +223,7 @@ envelopes, byte-valid-but-semantically-invalid archives, budget enforcement
 on both sides, and single-byte mutations of a valid archive never requiring
 unchecked access.
 
-## Acceptance accounting: pfd-handle-off-direct-state-carriers
+## Acceptance accounting: handoff-direct-state-carriers
 
 Acceptance criteria (architecture E2.2): "Separately usable codec and
 carrier; version/size validation and sealed-image round trip; multiple state
@@ -253,7 +255,7 @@ envelope bounds before archive access, budget checks before owned decode,
 strict framing/semantic validation, and immutable seals with positional I/O;
 it restates that application compatibility/authentication and actual carrier
 associations remain caller responsibilities. (For context, the transport
-ticket `pfd-handle-off-direct-rights` has also closed with its focused review
+ticket `handoff-direct-rights` has also closed with its focused review
 finding no substantive issues.)
 
 ## Links
