@@ -200,5 +200,18 @@ release, dropped-attempt quarantine, or recovery sequencing. E4.1 is closed.
 The contract remains cooperative: evidence is application attestation, and
 applications own domain/generation matching, controller lifetime, real quiescence,
 and aliases outside the controller. These are not OS-enforced execution leases.
-Systemd generation naming/catalog work is in progress; no complete replacement
-adapter or end-to-end restart claim follows from the core alone.
+### Named generation catalog complete
+
+The E3.3 catalog subset landed `36321247`; the
+[generation report](../../doc/systemd/generations0.gpt61s.md) and README landed
+`3b0d8bf5`. Nine new tests and 105 workspace tests passed with pinned checks.
+Source review found no substantive issues in bounded naming, borrowed discovery,
+sparse indexing, or manifest mapping. Upstream deduplication-before-name-assignment
+was confirmed against manager source, including its capability-dependent identity
+fallback. E3.3 remains open for publication and retirement.
+
+Direct successor coordination (E4.2) is now in progress, before manager publication:
+a separate correlated control channel, dormant reconstruction, explicit release,
+and retirement acknowledgment grounded in the core's authority transitions.
+Real process tests must demonstrate continuation of the same live resource;
+catalog/root/marker presence alone never authorizes execution.
