@@ -215,3 +215,14 @@ a separate correlated control channel, dormant reconstruction, explicit release,
 and retirement acknowledgment grounded in the core's authority transitions.
 Real process tests must demonstrate continuation of the same live resource;
 catalog/root/marker presence alone never authorizes execution.
+
+### Agent context rollover
+
+The operator explicitly requested fresh agents around 250–400k context after the
+long-running implementation session approached 500k. Finish its current direct
+handover round, then start a new implementation session. For subsequent work,
+target a coherent rollover near 250k and roll over before 400k; do not repeatedly
+extend the same agent across the entire epic sequence. Handoffs should contain
+commits, relevant paths/APIs, decisions and limits, remaining tickets, checks, and
+owned uncommitted work—not a transcript dump. Apply the same discipline to review
+and documentation sessions as they grow.
