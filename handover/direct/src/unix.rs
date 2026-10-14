@@ -503,6 +503,9 @@ impl Receiver {
     /// Callback success must retire ALL app-created copies/actors/restoration paths.
     /// Library Delivery is then dropped BEFORE RETIRED. Err retains library FDs; app
     /// parked state remains outside this API. No automatic retry or resume on Drop.
+    /// If retire_app unwinds, the by-value staged delivery and abort notice drop
+    /// rather than being returned. No RETIRED is sent; the old owner stays parked.
+    /// Returned-error retention does not guarantee ownership retention across panic.
     pub fn retire<E>(
         &mut self,
         staged: StagedDelivery,

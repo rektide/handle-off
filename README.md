@@ -6,6 +6,12 @@ resource: /README.md
 status: implemented
 generated: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
 sources:
+  - resource: "opencode://ses_ec62244e1ffeTltEwkpyaPtBmE"
+    title: Documented direct successor control, actual process evidence and retained-failure boundaries from source
+  - resource: "opencode://ses_ec7f40693ffew22J16HkhJkhFP"
+    title: Parent-selected separate custody and execution control architecture and documentation checkpoint
+  - resource: "opencode://ses_ec622add3ffeZPbzPPOLe2WBfe"
+    title: Source-only direct review via parent dispatch found no execution-authority safety blockers with explicit retirement-unwind limits
   - resource: "opencode://ses_ec6fadd36ffe5ikLXsfbVLP6VB"
     title: Prior workspace/status additions for notify, fdstore and rendezvous, preserved here
   - resource: "opencode://ses_ec6b8650fffeM5meMdn7oL2CZs"
@@ -16,6 +22,8 @@ sources:
     title: Optional inspection API, bounds, observation limits and attributed verification
   - resource: /doc/handover/core0.gpt61s.md
     title: Backend-free handover bookkeeping, trusted evidence, fail-closed transitions and attributed tests
+  - resource: /doc/handover/direct0.gpt61s.md
+    title: Separate correlated direct control, dormant restore, explicit release/retirement and real stream continuation
   - resource: /doc/systemd/generations0.gpt61s.md
     title: Bounded generation addresses, borrowed discovery, manifest mapping and upstream deduplication evidence
   - resource: /doc/systemd/custody0.glm53max.md
@@ -49,9 +57,10 @@ codec, a sealed Linux state-image carrier, classic socket-activation metadata
 handling, a sample correlated bundle-delivery protocol, service notifications
 with fdstore offers and optional read-only membership inspection, and endpoint
 rendezvous vocabulary with a sample policy. A backend-free cooperative handover
-permission core and bounded systemd generation naming/catalog subset are implemented;
-generation publication/retirement, concrete control adapters and
-real application replacement are not yet implemented. The delivery sequence is proposed in
+permission core, a separate direct successor control adapter with a real-process
+pending-write example, and bounded systemd generation naming/catalog subset are
+implemented. Manager generation publication/retirement, CLI/session integration
+and deployed application replacement remain later work. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -77,6 +86,7 @@ with the reading map in
 | `handle-off-rendezvous` (`rendezvous/core`) | Endpoint-resolution contract yielding unverified candidates |
 | `handle-off-rendezvous-local` (`rendezvous/local`) | Sample explicit/environment/XDG/local resolution policy |
 | `handle-off-handover` (`handover/core`) | Cooperative permission bookkeeping with retained evidence and fail-closed quarantine |
+| `handle-off-handover-direct` (`handover/direct`) | Separate one-shot correlated dormant-successor release/retirement control |
 | `handle-off-systemd-generation` (`systemd/generation`) | Bounded transient tags and borrowed non-destructive generation catalogs |
 
 Foundation/local crates have **no external dependencies**. Facade features `handles`, `bundle`,
@@ -91,6 +101,9 @@ and requires an external trusted `busctl` executable at query time;
 `transport-unix` and the std-only `rendezvous` crates compose workspace crates
 only. `handover` and `systemd-generation` use foundation workspace crates only,
 with no external dependency, runtime, codec or backend. None are included in `local`.
+`handover-direct` separately composes the core, bundle transport and Unix rights
+primitive (transitively rkyv/rustix), without a runtime, memfd or manager dependency.
+It also stays outside `local` and empty defaults.
 
 ## Local use
 
@@ -284,6 +297,45 @@ raw receipts/metadata establish safe handover. Approvals are single-issued per
 controller; applications enforce generation/domain redemption, prevent resets
 and police aliases/auto-resuming leases. No real restart is claimed by
 the synthetic core tests. See the [core checkpoint](doc/handover/core0.gpt61s.md).
+
+### Direct successor control
+
+The optional `handover-direct` feature reexports `handle_off::handover_direct`.
+Each side supplies a **separate**, fresh connected Unix datagram control socket,
+exclusive empty queues, a finite operation timeout and a caller-selected fresh
+128-bit session token. `Correlation` binds that token, generation and bundle
+offer ID; `Endpoint::next_offer_id()` and `Offer::offer_id()` expose read-only
+transport correlation without changing custody-only ACK semantics.
+
+Receiver `stage` accepts custody; `ready` validates/restores application state
+while dormant and sends READY. Sender `wait_ready` supplies evidence for core
+custody verification. Only after permanent old-owner relinquishment does core
+`release` pass a `ReleaseGrant` to sender `release`, which sends RELEASE and waits
+for RELEASED. This acknowledgment means permission receipt, not application
+completion. Alternatively, ABORT/RETIRED covers all application-created copies
+and library inventory; only core verified abort may grant old resume permission.
+
+Control ambiguity poisons the session, with no automatic retries or rollback.
+Failure APIs retain staged delivery or received permission where still owned;
+retirement drops library inventory before sending RETIRED. Applications retain
+their own partial restored state and police every I/O alias: correlation and
+trusted readiness/retirement assertions are not authentication or OS revocation.
+Returned retirement errors retain inventory where present; an unwinding retirement
+callback instead drops its by-value delivery/notice without sending RETIRED, so
+the old owner remains parked. Panic is not an ownership-retention guarantee.
+
+The [process fixture](examples/direct-handover/tests/processes.rs) launches the
+[successor example](examples/direct-handover/src/main.rs), transfers one live
+Unix stream plus pending bytes/offset, verifies no output before release, then
+checks exact continuation and ping/pong on the same connection. Its abort branch
+retires successor copies before the old writer continues. This is not a CLI,
+manager handover or deployed-service test, and does not test multiple bundles.
+Implementer reports 116 passing workspace tests (11 new), pinned-nightly checks
+and one optional live test skipped; documentation did not rerun them. Fresh
+source-only review reported no execution-authority safety blockers, with the
+explicit retirement-unwind boundary above. See the
+[direct checkpoint](doc/handover/direct0.gpt61s.md) for APIs, retained failures
+and the reproducible process-test command.
 
 ## Generation catalogs
 
