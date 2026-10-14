@@ -93,6 +93,7 @@ dependencies = [
 name = "handle-off"
 version = "0.1.0"
 dependencies = [
+ "handle-off-activation",
  "handle-off-bundle",
  "handle-off-handles",
  "handle-off-invocation",
@@ -101,6 +102,22 @@ dependencies = [
  "handle-off-state-rkyv",
  "handle-off-stdio",
  "handle-off-unix-rights",
+]
+
+[[package]]
+name = "handle-off-activation"
+version = "0.1.0"
+dependencies = [
+ "rustix",
+]
+
+[[package]]
+name = "handle-off-activation-example"
+version = "0.1.0"
+dependencies = [
+ "handle-off-activation",
+ "libc",
+ "rustix",
 ]
 
 [[package]]

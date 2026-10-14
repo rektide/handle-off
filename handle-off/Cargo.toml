@@ -17,6 +17,7 @@ local = ["invocation", "stdio"]
 unix-rights = ["dep:handle-off-unix-rights"]
 state-rkyv = ["dep:handle-off-state-rkyv"]
 state-memfd = ["dep:handle-off-state-memfd"]
+activation = ["dep:handle-off-activation"]
 
 [dependencies]
 handle-off-handles = { path = "../handles/core", version = "0.1.0", optional = true }
@@ -27,3 +28,4 @@ handle-off-stdio = { path = "../handles/stdio", version = "0.1.0", optional = tr
 handle-off-unix-rights = { path = "../handles/unix-rights", version = "0.1.0", optional = true }
 handle-off-state-rkyv = { path = "../state/rkyv", version = "0.1.0", optional = true }
 handle-off-state-memfd = { path = "../state/memfd", version = "0.1.0", optional = true }
+handle-off-activation = { path = "../systemd/activation", version = "0.1.0", optional = true }

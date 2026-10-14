@@ -1,0 +1,19 @@
+[package]
+name = "handle-off-activation-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+handle-off-activation = { path = "../../systemd/activation", version = "0.1.0" }
+
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "1.1.5", default-features = false, features = ["std", "net", "time"] }
+# Used only by the synthetic manager binary to install inherited slots before exec.
+libc = "0.2.190"
+
+[[bin]]
+name = "handle-off-synthetic-activation-manager"
+path = "src/manager.rs"

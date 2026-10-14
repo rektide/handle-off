@@ -8,8 +8,11 @@
 //!
 //! All capabilities are opt-in. `local` enables only invocation and stdio;
 //! defaults are empty. No codec, async runtime, or service manager is required.
-//! `unix-rights` adds raw datagram descriptor transfer. Bundle delivery protocols,
-//! manager custody, and cooperative replacement are not implemented yet.
+//! `unix-rights` adds raw datagram descriptor transfer; `state-rkyv` adds a checked
+//! metadata codec, and `state-memfd` adds an independent sealed Linux byte carrier.
+//! `activation` parses classic manager metadata and explicitly claims inherited
+//! descriptors without fdstore, codec, or bundle dependencies. Bundle delivery
+//! protocols, manager custody, and cooperative replacement are not implemented yet.
 //!
 //! The current architecture proposal, its evidence, and the draft epic map
 //! live in the repository under `design/fd-handoff/`.
@@ -30,5 +33,8 @@ pub use handle_off_unix_rights as unix_rights;
 
 #[cfg(feature = "state-memfd")]
 pub use handle_off_state_memfd as state_memfd;
+
+#[cfg(feature = "activation")]
+pub use handle_off_activation as activation;
 #[cfg(feature = "state-rkyv")]
 pub use handle_off_state_rkyv as state_rkyv;
