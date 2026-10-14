@@ -78,3 +78,22 @@ Sol medium is implementing separate handle, bundle/state, stdio, and invocation
 capabilities plus a local example and feature/dependency baseline. A single
 combined contracts crate was considered during cleanup but not selected: the
 operator's meaningful heavy-decomposition preference remains controlling.
+
+### Foundation implementation landed
+
+Sol medium committed five capability crates and a local example (`9c82eef1`),
+then the maintained README and [implementation report](../../doc/foundation/implementation0.gpt61s.md)
+(`86ca200b`). Handles, bundles, opaque state extensions, native invocation data,
+and stdio roles are independent capabilities. The facade's defaults are empty;
+its local feature depends only on invocation and stdio. There are no external
+dependencies in this slice.
+
+Reported checks passed: nextest (11 tests), clippy with warnings denied,
+formatting, docs, and individual feature builds. The stripped dynamically linked
+local example measured 355,640 bytes; the report records the reproducible method
+and limits of that number. A focused ownership/contract review follows.
+
+The remote binary/dependency comparison was separated from E1.3 into
+`pfd-handle-off-direct-build-baseline`, dependent on the real CLI backend/result
+work. It cannot be measured against a nonexistent transport and should not block
+local-only capabilities. This adds one child to the original materialized map.
