@@ -103,10 +103,19 @@ local-only capabilities. This adds one child to the original materialized map.
 Followup review (`opencode://ses_ec70f2b7fffePk1evnZ4cGPhJb`) found no substantive
 ownership, membership, state-range, native-byte or feature-isolation issues.
 It additionally verified a workspace/all-features check on stable Rust 1.93.1.
-The inherited nightly development-toolchain selection remains unchanged; it is
-not a demonstrated library requirement. No older MSRV has been verified.
+The subsequent operator direction is to use current user-system Rust via mise,
+not older stable/MSRV checks. The repository now pins the mise-selected
+`nightly-2026-09-30` (rustc 1.101.0-nightly, `5c543b0b8`, 2026-09-29).
+The earlier stable probe is historical evidence only, not ongoing test policy.
 
 E1 and E5.1 are closed with implementation and review evidence. Future adoption
 diagnostics and transport-facing API conveniences were noted on their relevant
 tickets; they do not block the foundation. Descriptor delivery, manager custody,
 and restart continuity remain subsequent work, not claims of this local slice.
+
+### Blocking descriptor transport underway
+
+Sol medium continues with `pfd-handle-off-direct-rights`: an independently usable
+blocking SCM_RIGHTS crate, real multiple-descriptor transfer, explicit borrowed
+send/owned receive and truncation/CLOEXEC behavior. Runtime, codec, and bundle
+contracts stay outside the primitive. Checks use the pinned mise-selected Rust.
