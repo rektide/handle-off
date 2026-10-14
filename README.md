@@ -17,8 +17,9 @@ review in [REVIEW-0.md](REVIEW-0.md) and prior planning in `.transcript/`.
 
 ## Status
 
-The workspace is a minimal foundation scaffold. Crate boundaries, APIs, and
-the delivery sequence are proposed in
+The foundation provides independent resource, bundle, opaque state, invocation,
+and stdio crates. Direct transfer, systemd integration, and cooperative lifecycle
+coordination are not implemented yet. The delivery sequence is proposed in
 [design/fd-handoff/architecture0.gpt6a.md](design/fd-handoff/architecture0.gpt6a.md),
 with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
@@ -27,4 +28,44 @@ with the reading map in
 
 | Crate | Description |
 | --- | --- |
-| `handle-off` | Facade anchor; capability crates will reexport here via opt-in feature groups |
+| `handle-off` | Facade with empty defaults and opt-in reexports |
+| `handle-off-handles` (`handles/core`) | Logical resource IDs and explicit owned/borrowed FD tables |
+| `handle-off-bundle` (`handles/bundle`) | Multiple named bundles and complete manifest membership checks |
+| `handle-off-state` (`state/core`) | Opaque versioned extensions with inline or resource-range payloads |
+| `handle-off-stdio` (`handles/stdio`) | Explicit borrowed/owned stdin, stdout, stderr roles |
+| `handle-off-invocation` (`invocation/core`) | Native lossless argv, environment, and cwd snapshots |
+
+All crates have **no external dependencies**. Facade features `handles`, `bundle`,
+`state`, `stdio`, and `invocation` enable individual reexports; `local` enables
+only `stdio` and `invocation`. Descriptor APIs require Unix. Native invocation
+types and metadata can be used without descriptor operations.
+
+## Local use
+
+```toml
+[dependencies]
+handle-off = { version = "0.1.0", features = ["local"], default-features = false }
+```
+
+This is the intended dependency declaration; packages have not been published.
+Use workspace path dependencies for now. The example handler receives invocation
+and stdio explicitly, copies stdin bytes to stdout, and writes a summary to stderr:
+
+```sh
+cargo run -p handle-off-local-example -- arbitrary arguments < input > output
+cargo nextest run --workspace --all-features
+```
+
+Arguments include argv[0]; Unix non-UTF-8 arguments, environment, and cwd remain
+native bytes. Invocation capture does not execute a command or change process
+globals. Do not mix buffered standard-I/O access with direct descriptor I/O
+unless the application coordinates buffering.
+
+Resource IDs express caller-declared associations, not FD-number/OFD identity.
+Manifest validation checks structure and complete membership; applications still
+validate extension compatibility, resource kinds, carrier bounds, and the right
+to resume I/O. Descriptor duplication preserves shared offsets/status flags and
+does not revoke the original owner's access.
+
+See the [foundation implementation report](doc/foundation/implementation0.gpt61s.md)
+for APIs, extraction ownership, checks, and the measured local-build baseline.
