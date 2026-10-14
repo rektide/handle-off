@@ -6,6 +6,8 @@ resource: /design/fd-handoff/README.md
 status: draft
 generated: { by: "model:openai/gpt-6-astra", at: 2026-10-14 }
 sources:
+  - resource: "opencode://ses_ec5b335ffffeIyNK21aCZL3jEw"
+    title: "Added names-first systemd adoption design: application schemas, optional manifests, persistent custody, and completeness choices"
   - resource: "opencode://ses_ec616a6eaffe0I3U3HgN4tJ0Ho"
     title: "Added current naming and transcript-grounded capability opportunity assessment"
   - resource: "opencode://ses_ec7f40693ffew22J16HkhJkhFP"
@@ -16,6 +18,11 @@ sources:
 
 ## Proposed architecture
 
+- [Systemd-native inventory and application-shaped adoption](systemd-native-adoption0.gpt6a.md):
+  proposed names-first higher-level use; fixed roles and independent images need
+  no wire manifest, while exact dynamic continuity retains explicit completeness
+  and authority. Covers persistent custody, update tradeoffs, and coexistence
+  with the current manifest/direct adapters; design only, not new acceptance.
 - [Cooperative lifecycle checkpoint](lifecycle0.gpt6a.md): custody versus execution
   permission, direct control channel, manager generations, and alias limitations.
 - [Active work map](work.md): native epics, retained legacy tickets, and the
