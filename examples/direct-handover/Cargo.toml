@@ -1,0 +1,15 @@
+[package]
+name = "handle-off-direct-handover-example"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+handle-off-handover-direct = { path = "../../handover/direct", version = "0.1.0" }
+handle-off-handover = { path = "../../handover/core", version = "0.1.0" }
+handle-off-transport-unix = { path = "../../transport/unix", version = "0.1.0" }
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }
+handle-off-state = { path = "../../state/core", version = "0.1.0" }

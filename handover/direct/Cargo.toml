@@ -1,0 +1,16 @@
+[package]
+name = "handle-off-handover-direct"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "One-shot cooperative successor control separate from Unix bundle custody delivery"
+
+[dependencies]
+handle-off-handover = { path = "../core", version = "0.1.0" }
+handle-off-transport-unix = { path = "../../transport/unix", version = "0.1.0" }
+handle-off-unix-rights = { path = "../../handles/unix-rights", version = "0.1.0" }
+
+[dev-dependencies]
+handle-off-bundle = { path = "../../handles/bundle", version = "0.1.0" }
+handle-off-handles = { path = "../../handles/core", version = "0.1.0" }

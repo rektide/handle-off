@@ -97,6 +97,7 @@ dependencies = [
  "handle-off-bundle",
  "handle-off-handles",
  "handle-off-handover",
+ "handle-off-handover-direct",
  "handle-off-invocation",
  "handle-off-rendezvous",
  "handle-off-rendezvous-local",
@@ -148,6 +149,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "handle-off-direct-handover-example"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-handover",
+ "handle-off-handover-direct",
+ "handle-off-state",
+ "handle-off-transport-unix",
+]
+
+[[package]]
 name = "handle-off-handles"
 version = "0.1.0"
 
@@ -156,6 +169,17 @@ name = "handle-off-handover"
 version = "0.1.0"
 dependencies = [
  "handle-off-bundle",
+]
+
+[[package]]
+name = "handle-off-handover-direct"
+version = "0.1.0"
+dependencies = [
+ "handle-off-bundle",
+ "handle-off-handles",
+ "handle-off-handover",
+ "handle-off-transport-unix",
+ "handle-off-unix-rights",
 ]
 
 [[package]]
