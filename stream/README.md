@@ -21,6 +21,9 @@ for reading event sources, retaining simple file-based progress, and describing
 the source and position well enough for another reader to continue. Individual
 crate READMEs own runnable commands and verified capabilities as they land.
 
+The [research reading map](/design/streams/README.md) connects storage findings,
+Nodeon tool precedents and recovered journal work.
+
 ## Organization
 
 | Home | Responsibility |
