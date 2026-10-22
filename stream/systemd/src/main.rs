@@ -1,11 +1,7 @@
 use anyhow::{Result, ensure};
 use clap::{Parser, Subcommand};
-use handle_off_stream_journal::{Checkpoint, CheckpointLock, InitialPosition, Limits, Source, read, reference};
-use std::{
-    fs::File,
-    io::{self, Write},
-    path::PathBuf,
-};
+use handle_off_stream_journal::{Checkpoint, CheckpointLock, InitialPosition, Limits, Source, checkpoint_path, read, reference};
+use std::{ffi::OsString, io, path::PathBuf};
 
 #[derive(Parser)]
 #[command(version, about = "Experimental source-bound journal checkpoint utilities")]
@@ -16,12 +12,12 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Action {
-    /// Start from the oldest selected entry, requiring a new checkpoint file.
+    /// Start at the explicit head/tail policy, requiring a new checkpoint file.
     Read {
         #[arg(long)]
         source: PathBuf,
         #[arg(long)]
-        checkpoint: PathBuf,
+        checkpoint: OsString,
         #[arg(long)]
         start: InitialPosition,
         #[arg(long, default_value_t = 100)]
@@ -30,7 +26,7 @@ enum Action {
     /// Resume strictly after the saved entry. Optionally assert an exact source binding.
     Resume {
         #[arg(long)]
-        checkpoint: PathBuf,
+        checkpoint: OsString,
         #[arg(long)]
         source: Option<PathBuf>,
         #[arg(long, default_value_t = 100)]
@@ -39,17 +35,18 @@ enum Action {
     /// Print validated saved state without querying the journal.
     Status {
         #[arg(long)]
-        checkpoint: PathBuf,
+        checkpoint: OsString,
     },
     /// Print the checkpoint's file URI (not the opaque journal cursor).
     Reference {
         #[arg(long)]
-        checkpoint: PathBuf,
+        checkpoint: OsString,
     },
-}
-
-fn source(path: PathBuf) -> Result<Source> {
-    Ok(serde_json::from_reader(File::open(path)?)?)
+    /// Describe explicit source routing without opening the fixture, journal or checkpoint.
+    Describe {
+        #[arg(long)]
+        source: PathBuf,
+    },
 }
 
 fn run_batch(mut state: Checkpoint, path: PathBuf, limit: usize) -> Result<()> {
@@ -62,14 +59,7 @@ fn run_batch(mut state: Checkpoint, path: PathBuf, limit: usize) -> Result<()> {
             ..Limits::default()
         },
         |event| {
-            let observation = state.advance(&event)?;
-            serde_json::to_writer(
-                &mut output,
-                &serde_json::json!({"observation": observation, "identity": state.identity, "event": event}),
-            )?;
-            output.write_all(b"\n")?;
-            output.flush()?;
-            state.save(&path)?;
+            state.emit_into(&event, &mut output, &path)?;
             Ok(())
         },
     )?;
@@ -85,9 +75,10 @@ fn main() -> Result<()> {
             limit,
         } => {
             ensure!(limit > 0, "limit must be positive");
+            let checkpoint = checkpoint_path(&checkpoint)?;
             let _lock = CheckpointLock::acquire(&checkpoint)?;
             ensure!(!checkpoint.try_exists()?, "checkpoint exists; use resume or a new path");
-            let state = Checkpoint::new_at(source(input)?, start)?;
+            let state = Checkpoint::new_at(Source::load(&input)?, start)?;
             state.save_new(&checkpoint)?;
             run_batch(state, checkpoint, limit)
         }
@@ -96,20 +87,27 @@ fn main() -> Result<()> {
             source: input,
             limit,
         } => {
+            let checkpoint = checkpoint_path(&checkpoint)?;
             let _lock = CheckpointLock::acquire(&checkpoint)?;
             let state = Checkpoint::load(&checkpoint)?;
             if let Some(input) = input {
-                ensure!(state.source == source(input)?, "source binding mismatch");
+                ensure!(state.source == Source::load(&input)?, "source binding mismatch");
             }
             run_batch(state, checkpoint, limit)
         }
         Action::Status { checkpoint } => {
+            let checkpoint = checkpoint_path(&checkpoint)?;
             println!("{}", serde_json::to_string_pretty(&Checkpoint::load(&checkpoint)?)?);
             Ok(())
         }
         Action::Reference { checkpoint } => {
+            let checkpoint = checkpoint_path(&checkpoint)?;
             Checkpoint::load(&checkpoint)?;
             println!("{}", reference(&checkpoint)?);
+            Ok(())
+        }
+        Action::Describe { source } => {
+            println!("{}", serde_json::to_string_pretty(&Source::load(&source)?.describe()?)?);
             Ok(())
         }
     }

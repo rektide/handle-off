@@ -1,3 +1,21 @@
+---
+type: ImplementationGuide
+title: Source-bound journal checkpoint tools
+description: Finite journal readers, explicit source descriptions, reusable file references and retained installed-process fixtures.
+resource: /stream/systemd/README.md
+status: pre-alpha
+generated: { by: "model:openai/gpt-6.1-sol#xhigh", at: 2026-10-22 }
+sources:
+  - resource: "opencode://ses_e9a2e6661ffepeqA79um9bzmf5"
+    title: Initial implementation/research under Astra medium followed by Luna xhigh completion and first journalctl probe
+  - resource: "opencode://ses_e9a25db9cffeW8IeTiVrCNzdoC"
+    title: Sol xhigh adds bounded control documents, reusable references, offline source description, tested output commitment and retained successor fixtures
+  - resource: /design/streams/journal0.gpt6l.md
+    title: Original journal adapter, identity model and initial verification
+  - resource: /design/streams/integration0.gpt61s.md
+    title: Independent review, implemented refinement and concrete verification boundaries
+---
+
 # Journal checkpoint experiment
 
 Pre-alpha workspace crate: `handle-off-stream-journal`, binary `ho-journal`.
@@ -27,6 +45,29 @@ Follow-unit means later invocations are eligible; this command is a finite poll,
 not a background tail. `--limit` bounds emitted entries; library limits also bound
 JSON line bytes and scanned bytes. Budget failure can follow already committed
 entries; resume starts after the last committed output.
+
+## Describe routing and use a checkpoint reference
+
+```sh
+cargo run -p handle-off-stream-journal --bin ho-journal -- describe --source "$DEMO_DIR/source.json"
+REF="$(cargo run -p handle-off-stream-journal --bin ho-journal -- reference --checkpoint "$DEMO_DIR/checkpoint.json")"
+cargo run -p handle-off-stream-journal --bin ho-journal -- resume --checkpoint "$REF"
+```
+
+`describe` validates the explicit source kind/selection and prints its adapter
+profile (`journal-jsonl-v1` or `journalctl-json-v1`), exact effective selectors,
+position semantics, output profile and conservative cursor comparison. It reads
+only the source description, never the selected fixture/journal or a checkpoint.
+This is adapter description, not service discovery, access verification, a generic
+resource registry or conversion of HTTP Durable Streams checkpoints.
+
+Every `--checkpoint` accepts either a native path or the local absolute `file://`
+URI printed by `reference`. URI escaping preserves spaces, `#` and non-UTF-8 path
+bytes; remote hosts, query and fragment are rejected. A reference names mutable
+local reader state, not an immutable revision or a source's opaque cursor. A
+native relative path still resolves against the calling process's working directory.
+Source descriptions and checkpoints have a 64 KiB input bound; saved checkpoints
+are preflighted against the same bound before payload output.
 
 ## Actual journal source
 
@@ -93,6 +134,12 @@ make lifecycle/job selection explicit through `UNIT`.
   synced. A failure in that interval can replay output. A pipe flush is not downstream
   acknowledgement. Integrators needing durable sink acknowledgement should use the
   library callback and save only after their sink accepts the event.
+- `Checkpoint::emit_into` exposes the CLI's per-entry preflight/write/flush/save
+  boundary to library users; callers hold `CheckpointLock`. Its in-memory position
+  changes only after save success. A directory-sync failure can follow a successful
+  rename, so a save error does **not** universally mean the disk checkpoint is old.
+  Stop and inspect `status` before retrying. This sequence has not been power-loss
+  tested. Keep output separate from checkpoint/lock files.
 - An advisory sidecar lock serializes cooperating CLI writers for one path; it stays
   on disk. Use one canonical checkpoint path (aliases/symlinks can bypass the lock).
   External file edits and source-path replacement are outside this contract.
@@ -107,12 +154,23 @@ make lifecycle/job selection explicit through `UNIT`.
 cargo nextest run -p handle-off-stream-journal
 cargo clippy -p handle-off-stream-journal --all-targets -- -D warnings
 cargo fmt -p handle-off-stream-journal --check
+cargo build -p handle-off-stream-journal --bin ho-journal
+python3 stream/systemd/fixtures/installed.py \
+  --client target/debug/ho-journal --scratch .test-agent/journal-integration
 ```
 
 Fixtures cover unrelated units, manager job target versus manager emitter and
 distinct invocation fields, backwards wallclock, repeated/binary fields,
 same-invocation PID changes, invocation change with PID reuse, reboot and missing
 invocation. Synthetic missing cursor is not an induced real journal vacuum test.
+Run the retained fixture command from the repository root; it copies the selected
+binary outside the checkout working directory, records before/after checkpoint
+bytes, and links actual reader-process prefix/successor/independent attempts.
+The [fixture guide](fixtures/README.md) describes evidence, negative controls and
+cleanup custody. The scoped tests add partial-write/flush/save failures, state
+bounds, source mismatches before access, offline description, reusable URI and
+scripted journalctl nearest-neighbor refusal. Reader-process succession does not
+prove service takeover or execution authority.
 See [research and evidence](/design/streams/journal0.gpt6l.md) and
 [prior local readers](/design/streams/journal-prior0.gpt6l.md). Cyclrs owns the
 stronger native exact-seek/frozen-cut precedent; Umbriel retains activity policy.

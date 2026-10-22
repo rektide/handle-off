@@ -4,11 +4,22 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use std::{
     collections::{BTreeMap, VecDeque},
+    ffi::OsStr,
     fs::{File, OpenOptions},
     io::{BufRead, BufReader, Read, Write},
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
 };
+
+/// Source descriptions and checkpoints are small control documents, not journal payloads.
+pub const MAX_STATE_BYTES: usize = 64 * 1024;
+
+fn load_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
+    let mut bytes = Vec::new();
+    File::open(path)?.take(MAX_STATE_BYTES as u64 + 1).read_to_end(&mut bytes)?;
+    ensure!(bytes.len() <= MAX_STATE_BYTES, "control document exceeds 64 KiB");
+    Ok(serde_json::from_slice(&bytes)?)
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
@@ -67,6 +78,12 @@ fn id_valid(id: &str) -> bool {
 }
 
 impl Source {
+    pub fn load(path: &Path) -> Result<Self> {
+        let source: Self = load_json(path)?;
+        source.validate()?;
+        Ok(source)
+    }
+
     pub fn validate(&self) -> Result<()> {
         ensure!(id_valid(&self.machine_id), "machine_id must be 32 lowercase hex digits");
         ensure!(!self.unit.is_empty() && !self.unit.chars().any(char::is_control), "invalid unit");
@@ -131,6 +148,33 @@ impl Source {
             _ => false,
         })
     }
+
+    /// Describe the explicit adapter/selection without opening the source or state.
+    pub fn describe(&self) -> Result<SourceDescription> {
+        self.validate()?;
+        Ok(SourceDescription {
+            backend_profile: match self.backend {
+                Backend::Fixture { .. } => "journal-jsonl-v1",
+                Backend::Journal { .. } => "journalctl-json-v1",
+            },
+            source: self.clone(),
+            selectors: self.selectors(),
+            position_semantics: "exclusive-after-last-emitted-entry",
+            cursor_comparison: "exact-string-only",
+            output_profile: "journal-observation-jsonl-v1",
+        })
+    }
+}
+
+/// Adapter-specific description, not a registry, checkpoint converter or access probe.
+#[derive(Clone, Debug, Serialize)]
+pub struct SourceDescription {
+    pub backend_profile: &'static str,
+    pub source: Source,
+    pub selectors: BTreeMap<String, String>,
+    pub position_semantics: &'static str,
+    pub cursor_comparison: &'static str,
+    pub output_profile: &'static str,
 }
 
 /// JSON values are retained verbatim, including binary byte arrays and repeated fields.
@@ -263,7 +307,7 @@ impl Checkpoint {
         Ok(())
     }
     pub fn load(path: &Path) -> Result<Self> {
-        let state: Self = serde_json::from_reader(File::open(path)?)?;
+        let state: Self = load_json(path)?;
         state.validate()?;
         Ok(state)
     }
@@ -278,6 +322,28 @@ impl Checkpoint {
         self.emitted = emitted;
         Ok(observation)
     }
+    /// Emit one observation line, flush it, then persist its position. The caller
+    /// must hold CheckpointLock. Preflight failure writes nothing; output/flush
+    /// failure leaves the saved state unchanged. A save failure can follow emitted
+    /// output and, after rename, can leave uncertain persistence. Stop and inspect
+    /// disk state before retrying. In-memory state changes only after save success.
+    pub fn emit_into(&mut self, event: &Event, output: &mut impl Write, path: &Path) -> Result<Observation> {
+        self.validate()?;
+        let mut next = self.clone();
+        let observation = next.advance(event)?;
+        let checkpoint = next.bytes()?;
+        let mut line = serde_json::to_vec(&serde_json::json!({
+            "observation": observation,
+            "identity": next.identity,
+            "event": event,
+        }))?;
+        line.push(b'\n');
+        output.write_all(&line).context("output failed; checkpoint unchanged")?;
+        output.flush().context("output flush failed; checkpoint unchanged")?;
+        Self::persist(&checkpoint, path, false).context("output flushed but checkpoint save failed; inspect state before retrying")?;
+        *self = next;
+        Ok(observation)
+    }
     /// Caller must hold CheckpointLock when coordinating multiple writers.
     pub fn save(&self, path: &Path) -> Result<()> {
         self.write_atomic(path, false)
@@ -287,11 +353,19 @@ impl Checkpoint {
         self.write_atomic(path, true)
     }
     fn write_atomic(&self, path: &Path, no_clobber: bool) -> Result<()> {
+        Self::persist(&self.bytes()?, path, no_clobber)
+    }
+    fn bytes(&self) -> Result<Vec<u8>> {
         self.validate()?;
+        let mut bytes = serde_json::to_vec_pretty(self)?;
+        bytes.push(b'\n');
+        ensure!(bytes.len() <= MAX_STATE_BYTES, "checkpoint exceeds 64 KiB");
+        Ok(bytes)
+    }
+    fn persist(bytes: &[u8], path: &Path, no_clobber: bool) -> Result<()> {
         let parent = path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
         let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-        serde_json::to_writer_pretty(&mut temporary, self)?;
-        temporary.write_all(b"\n")?;
+        temporary.write_all(bytes)?;
         temporary.as_file().sync_all()?;
         if no_clobber {
             temporary.persist_noclobber(path)?;
@@ -329,6 +403,21 @@ pub fn reference(path: &Path) -> Result<String> {
         .map_err(|()| anyhow::anyhow!("cannot form file URI"))
 }
 
+/// Accept a native path or the local, absolute file URI printed by `reference`.
+/// Query/fragment and remote hosts are rejected, never treated as checkpoint data.
+/// Non-UTF-8 native paths remain supported; URI percent decoding is delegated to url.
+pub fn checkpoint_path(value: &OsStr) -> Result<PathBuf> {
+    if !value.as_encoded_bytes().starts_with(b"file:") {
+        return Ok(PathBuf::from(value));
+    }
+    let text = value.to_str().context("file URI must be UTF-8")?;
+    ensure!(text.starts_with("file://"), "checkpoint file URI must be absolute (file://)");
+    let uri = url::Url::parse(text)?;
+    ensure!(uri.query().is_none() && uri.fragment().is_none(), "checkpoint URI query/fragment unsupported");
+    uri.to_file_path()
+        .map_err(|()| anyhow::anyhow!("checkpoint URI must name a local absolute file"))
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Limits {
     pub entries: usize,
@@ -359,8 +448,8 @@ impl Drop for Process {
 pub fn read(checkpoint: &Checkpoint, limits: Limits, mut consume: impl FnMut(Event) -> Result<()>) -> Result<usize> {
     checkpoint.validate()?;
     ensure!(
-        limits.entries > 0 && limits.line_bytes > 0 && limits.scan_bytes > 0,
-        "read limits must be positive"
+        limits.entries > 0 && limits.line_bytes > 0 && limits.scan_bytes > 0 && (limits.line_bytes as u128) < u64::MAX as u128,
+        "read limits must be positive and line bound below u64::MAX"
     );
     let fixture_tail =
         matches!(checkpoint.source.backend, Backend::Fixture { .. }) && checkpoint.cursor.is_none() && checkpoint.initial_position == InitialPosition::Tail;
