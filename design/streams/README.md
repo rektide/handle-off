@@ -38,6 +38,10 @@ source inspection is distinct from a running fixture result.
 
 ## Fixture and journal precedents
 
+- [Durable Streams workbench report](durable-workbench0.gpt61s.md): implemented
+  HTTP/file-reader boundary, deterministic failure tests and actual external-server
+  observations. [CLI guide](/stream/durable-streams/README.md).
+
 - [Nodeon tools](nodeon0.gpt6l.md): implemented catalog/scenario tools,
   installed-CLI verification, retained attempts and their reuse limits. Separates
   working APIs from proposed packet/bundle/profile capabilities.

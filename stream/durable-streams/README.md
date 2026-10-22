@@ -6,6 +6,8 @@ resource: /stream/durable-streams/README.md
 status: pre-alpha
 generated: { by: "model:openai/gpt-6.1-sol#high", at: 2026-10-22 }
 sources:
+  - resource: "opencode://ses_e9afd800bffeVHLHIvV9eCKpzQ"
+    title: Parent integrates the completed workbench into the root workspace and updates build paths
   - resource: "opencode://ses_e9a2eba1effeABgmzwRldpSIfR"
     title: Astra initial implementation followed by explicitly selected Sol high hardening, deterministic tests, live-server verification and documentation
   - resource: /design/streams/durable-workbench0.gpt61s.md
@@ -22,7 +24,7 @@ sources:
 
 **Pre-alpha: finite HTTP commands and enduring, independent file readers.**
 Package `handle-off-stream-durable` supplies a library and `durable-workbench`
-binary. It initially has an isolated workspace; root integration is parent-owned.
+binary. It is a member of the root Cargo workspace.
 No upstream Rust client dependency, stream server dependency or handoff transport
 dependency is required. The initial implementation was Astra medium; Sol high
 subsequently hardened and verified it in the same session.
@@ -32,8 +34,8 @@ subsequently hardened and verified it in the same session.
 From the repository root:
 
 ```sh
-cargo build --manifest-path stream/durable-streams/Cargo.toml
-W=stream/durable-streams/target/debug/durable-workbench
+cargo build -p handle-off-stream-durable
+W=target/debug/durable-workbench
 URL=http://127.0.0.1:4437/v1/stream/demo
 $W create "$URL"
 printf 'first\n' | $W append "$URL"
@@ -148,8 +150,8 @@ read_into}` owns lock and output-before-checkpoint ordering. APIs are synchronou
 and return errors rather than installing runtimes or catching failure to print it.
 
 ```sh
-cargo nextest run --manifest-path stream/durable-streams/Cargo.toml
-cargo clippy --manifest-path stream/durable-streams/Cargo.toml --all-targets -- -D warnings
+cargo nextest run -p handle-off-stream-durable
+cargo clippy -p handle-off-stream-durable --all-targets -- -D warnings
 python3 stream/durable-streams/fixtures/live.py \
   --server /absolute/path/to/durable-streams-server \
   --client /absolute/path/to/durable-workbench \

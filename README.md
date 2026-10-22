@@ -6,6 +6,8 @@ resource: /README.md
 status: implemented
 generated: { by: "model:openai/gpt-6.1-sol#medium", at: 2026-10-14 }
 sources:
+  - resource: "opencode://ses_e9afd800bffeVHLHIvV9eCKpzQ"
+    title: Add experimental stream-reader tools and researcher-written storage and fixture accounts
   - resource: "opencode://ses_ec62244e1ffeTltEwkpyaPtBmE"
     title: Documented direct successor control, actual process evidence and retained-failure boundaries from source
   - resource: "opencode://ses_ec7f40693ffew22J16HkhJkhFP"
@@ -66,6 +68,12 @@ with the reading map in
 [design/fd-handoff/README.md](design/fd-handoff/README.md).
 
 ## Workspace
+
+The experimental [stream tools](stream/README.md) subtopic adds enduring CLI
+readers and source references. Its first implemented tool is
+[`durable-workbench`](stream/durable-streams/README.md), with source-bound file
+checkpoints and a real external-server fixture. These pre-alpha tools have their
+own [research and evidence map](design/streams/README.md).
 
 | Crate | Description |
 | --- | --- |

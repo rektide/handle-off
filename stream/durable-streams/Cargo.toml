@@ -5,8 +5,6 @@ edition = "2024"
 license = "Apache-2.0"
 description = "Pre-alpha Durable Streams HTTP workbench with enduring file readers"
 
-[workspace]
-
 [[bin]]
 name = "durable-workbench"
 path = "src/main.rs"

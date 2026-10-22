@@ -32,6 +32,10 @@ Nodeon tool precedents and recovered journal work.
 | `stream/systemd/` | Journal event-source reader, cursor and participant identity evidence |
 | `design/streams/` | Research, fixture precedents, implementation evidence and integration decisions |
 
+The [Durable Streams CLI guide](durable-streams/README.md) describes the first
+implemented reader. Its [report](/design/streams/durable-workbench0.gpt61s.md)
+records deterministic checks and real-server evidence separately.
+
 These are source adapters. Existing [handle-off primitives](/README.md) continue
 to own resource IDs, bundles, state metadata, descriptor delivery and custody.
 The first tools need not transfer a live server or adopt its storage engine.
