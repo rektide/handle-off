@@ -178,7 +178,8 @@ fn describe_is_offline_and_checkpoint_uris_are_local_unambiguous_references() ->
     let description: Value = serde_json::from_slice(&output.stdout)?;
     assert_eq!(description["backend_profile"], "journalctl-json-v1");
     assert_eq!(description["selectors"]["USER_INVOCATION_ID"], "2".repeat(32));
-    assert_eq!(description["selectors"]["UNIT"], "worker.service");
+    assert_eq!(description["selectors"]["USER_UNIT"], "worker.service");
+    assert!(description["selectors"].get("UNIT").is_none());
     assert_eq!(description["cursor_comparison"], "exact-string-only");
     assert_eq!(description["source"], serde_json::to_value(source)?);
     assert_eq!(std::fs::read_dir(installed.dir.path())?.count(), before);

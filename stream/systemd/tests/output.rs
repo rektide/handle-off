@@ -163,7 +163,7 @@ fn control_documents_are_bounded_and_invalid_state_is_not_repaired() -> anyhow::
     for mutation in ["version", "unknown", "cursor"] {
         let mut value = serde_json::to_value(&state)?;
         match mutation {
-            "version" => value["version"] = 2.into(),
+            "version" => value["version"] = 3.into(),
             "unknown" => value["unknown"] = true.into(),
             "cursor" => value["cursor"] = "".into(),
             _ => unreachable!(),

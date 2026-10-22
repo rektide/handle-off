@@ -90,6 +90,91 @@ fn manager_job_identity_keeps_target_and_emitter_incarnations_distinct() -> anyh
 }
 
 #[test]
+fn user_manager_target_selects_target_not_emitting_service_or_system_target() -> anyhow::Result<()> {
+    use serde_json::json;
+    let dir = tempfile::tempdir()?;
+    let path = dir.path().join("journal.jsonl");
+    let machine = "a".repeat(32);
+    let invocation = "1".repeat(32);
+    let record = |cursor: &str, user_unit: &str, unit: &str, id: &str| {
+        json!({
+            "__CURSOR": cursor, "_MACHINE_ID": machine, "_BOOT_ID": "b".repeat(32),
+            "_COMM": "systemd", "_UID": "1000", "_PID": "1457",
+            "_SYSTEMD_UNIT": "user@1000.service", "_SYSTEMD_USER_UNIT": "init.scope",
+            "USER_UNIT": user_unit, "UNIT": unit, "USER_INVOCATION_ID": id
+        })
+    };
+    let mut target = record("user:1", "worker.service", "other.service", &invocation);
+    target.as_object_mut().unwrap().remove("UNIT"); // Typical user-manager record.
+    let rows = [
+        target,
+        record("user:2", "other.service", "worker.service", &invocation),
+        record("user:3", "worker.service", "other.service", &"2".repeat(32)),
+    ];
+    std::fs::write(&path, rows.iter().map(|row| format!("{row}\n")).collect::<String>())?;
+    let mut input = source();
+    input.backend = Backend::Fixture { path };
+    input.unit_field = UnitField::UserManagerTarget;
+    input.selection = Selection::Invocation { id: invocation.clone() };
+    assert_eq!(input.selectors()["USER_UNIT"], "worker.service");
+    assert!(!input.selectors().contains_key("UNIT"));
+    let mut state = Checkpoint::new(input.clone())?;
+    let snapshot = state.clone();
+    assert_eq!(
+        read(&snapshot, Limits::default(), |event| {
+            assert_eq!(event.cursor()?, "user:1");
+            assert_eq!(state.advance(&event)?, Observation::First);
+            Ok(())
+        })?,
+        1
+    );
+    let identity = state.identity.unwrap();
+    assert_eq!(identity.unit.as_deref(), Some("worker.service"));
+    assert_eq!(identity.emitter_unit.as_deref(), Some("user@1000.service"));
+    assert_eq!(
+        identity.invocation.unwrap(),
+        InvocationIdentity {
+            field: "USER_INVOCATION_ID".into(),
+            value: invocation
+        }
+    );
+    input.matches.insert("USER_UNIT".into(), "other.service".into());
+    assert!(input.validate().unwrap_err().to_string().contains("reserved selector USER_UNIT"));
+    Ok(())
+}
+
+#[test]
+fn legacy_user_manager_checkpoints_fail_closed_without_modification() -> anyhow::Result<()> {
+    let dir = tempfile::tempdir()?;
+    let path = dir.path().join("legacy.json");
+    let mut state = Checkpoint::new(source())?;
+    assert_eq!(state.version, 2);
+    state.version = 1;
+    state.save(&path)?;
+    assert_eq!(Checkpoint::load(&path)?.version, 1); // Unaffected profiles remain usable.
+    state.source.unit_field = UnitField::UserManagerTarget;
+    let event: Event = serde_json::from_value(serde_json::json!({"__CURSOR":"test"}))?;
+    assert!(state.advance(&event).unwrap_err().to_string().contains("version 1 user_manager_target"));
+    for positioned in [false, true] {
+        if positioned {
+            state.cursor = Some("old:cursor".into());
+            state.identity = Some(Identity::default());
+        }
+        std::fs::write(&path, serde_json::to_vec(&state)?)?;
+        let before = std::fs::read(&path)?;
+        let output = std::process::Command::new(env!("CARGO_BIN_EXE_ho-journal"))
+            .args(["resume", "--checkpoint"])
+            .arg(&path)
+            .output()?;
+        assert!(!output.status.success());
+        assert!(output.stdout.is_empty());
+        assert!(String::from_utf8_lossy(&output.stderr).contains("version 1 user_manager_target"));
+        assert_eq!(std::fs::read(&path)?, before);
+    }
+    Ok(())
+}
+
+#[test]
 fn manager_invocation_transition_uses_target_cycle_not_emitter_pid_or_id() -> anyhow::Result<()> {
     let mut input = source();
     input.unit_field = UnitField::ManagerTarget;
@@ -160,7 +245,7 @@ fn durable_roundtrip_and_writer_exclusion() -> anyhow::Result<()> {
     assert!(Checkpoint::new(source())?.save_new(&path).is_err());
     assert_eq!(std::fs::read(&path)?, before);
     let mut invalid = state;
-    invalid.version = 2;
+    invalid.version = 3;
     assert!(invalid.save(&path).is_err());
     assert_eq!(std::fs::read(&path)?, before);
     drop(lock);

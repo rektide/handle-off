@@ -110,6 +110,7 @@ impl Source {
                         "_SYSTEMD_USER_UNIT",
                         "_SYSTEMD_INVOCATION_ID",
                         "UNIT",
+                        "USER_UNIT",
                         "INVOCATION_ID",
                         "USER_INVOCATION_ID",
                     ]
@@ -127,7 +128,8 @@ impl Source {
         let unit_key = match self.unit_field {
             UnitField::SystemdUnit => "_SYSTEMD_UNIT",
             UnitField::UserUnit => "_SYSTEMD_USER_UNIT",
-            UnitField::ManagerTarget | UnitField::UserManagerTarget => "UNIT",
+            UnitField::ManagerTarget => "UNIT",
+            UnitField::UserManagerTarget => "USER_UNIT",
         };
         result.insert(unit_key.into(), self.unit.clone());
         if let Selection::Invocation { id } = &self.selection {
@@ -198,7 +200,8 @@ impl Event {
         let unit_key = match source.unit_field {
             UnitField::SystemdUnit => "_SYSTEMD_UNIT",
             UnitField::UserUnit => "_SYSTEMD_USER_UNIT",
-            UnitField::ManagerTarget | UnitField::UserManagerTarget => "UNIT",
+            UnitField::ManagerTarget => "UNIT",
+            UnitField::UserManagerTarget => "USER_UNIT",
         };
         let invocation_key = match source.unit_field {
             UnitField::SystemdUnit | UnitField::UserUnit => "_SYSTEMD_INVOCATION_ID",
@@ -289,7 +292,7 @@ impl Checkpoint {
     pub fn new_at(source: Source, initial_position: InitialPosition) -> Result<Self> {
         source.validate()?;
         Ok(Self {
-            version: 1,
+            version: 2,
             source,
             initial_position,
             cursor: None,
@@ -298,7 +301,11 @@ impl Checkpoint {
         })
     }
     pub fn validate(&self) -> Result<()> {
-        ensure!(self.version == 1, "unsupported checkpoint version {}", self.version);
+        ensure!(matches!(self.version, 1 | 2), "unsupported checkpoint version {}", self.version);
+        ensure!(
+            !(self.version == 1 && self.source.unit_field == UnitField::UserManagerTarget),
+            "version 1 user_manager_target checkpoint used the wrong selector; create a new checkpoint with an explicit start position"
+        );
         self.source.validate()?;
         ensure!(self.cursor.is_some() == self.identity.is_some(), "cursor and identity must be paired");
         if let Some(cursor) = &self.cursor {
@@ -312,6 +319,7 @@ impl Checkpoint {
         Ok(state)
     }
     pub fn advance(&mut self, event: &Event) -> Result<Observation> {
+        self.validate()?;
         ensure!(self.source.accepts(event), "entry does not match checkpoint source");
         let cursor = event.cursor()?.to_owned();
         let identity = event.identity(&self.source);

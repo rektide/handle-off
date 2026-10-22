@@ -14,6 +14,10 @@ sources:
     title: Original journal adapter, identity model and initial verification
   - resource: /design/streams/integration0.gpt61s.md
     title: Independent review, implemented refinement and concrete verification boundaries
+  - resource: "opencode://ses_e6ea2d95dffe6WHg2TSsD0i3Xs"
+    title: Correct user-manager selection and define version-1 checkpoint compatibility
+  - resource: "file:///home/rektide/src/cyclrs/design/kubeless-current/journald-followup0.gpt6a.md"
+    title: Independent selector diagnosis and bounded native user-manager observation
 ---
 
 # Journal checkpoint experiment
@@ -95,7 +99,7 @@ application/manager-specific; they are not synthesized from unit or invocation I
 - `systemd_unit` selects service-process entries by trusted `_SYSTEMD_UNIT`;
 - `user_unit` selects user-service entries by `_SYSTEMD_USER_UNIT`;
 - `manager_target` selects system manager lifecycle/job entries by `UNIT`;
-- `user_manager_target` selects user-manager target entries by `UNIT`.
+- `user_manager_target` selects user-manager target entries by `USER_UNIT`.
 
 Manager entries have their own emitter (`_SYSTEMD_UNIT`, commonly `init.scope`),
 and systemd-generated `INVOCATION_ID` (or `USER_INVOCATION_ID`) is retained as a
@@ -113,7 +117,21 @@ not byte-for-byte journal export preservation. Scalar identity interpretation is
 conservative: missing/repeated identity fields produce unknown observations.
 Service modes filter exactly on the selected service identity field and therefore
 exclude manager messages attributed to the manager unit. `manager_target` modes
-make lifecycle/job selection explicit through `UNIT`.
+make lifecycle/job selection explicit through `UNIT` or `USER_UNIT` respectively.
+
+### Checkpoint compatibility
+
+New checkpoints use version 2. Version 1 accidentally mapped
+`user_manager_target` to `UNIT` instead of `USER_UNIT`; its source and cursor do
+not encode which interpretation produced the position. Version-1 checkpoints
+with that profile are rejected even when unpositioned, rather than silently
+resuming a different selection. Preserve the old file for inspection and create
+a new checkpoint with an explicit `head` or `tail` decision; this may replay or
+omit history, so reconcile downstream effects deliberately. There is no automatic
+cursor migration. Other version-1 profiles remain supported, except that any
+source using `USER_UNIT` as an extra match is now rejected as a reserved selector.
+Do not feed version-2 checkpoints to older binaries, which do not understand
+the corrected binding.
 
 ## Delivery contract
 
