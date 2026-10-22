@@ -7,6 +7,7 @@ from pathlib import Path
 import socket
 import struct
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.request
@@ -33,6 +34,8 @@ def main():
     process = None
     log = (run / "server.log").open("wb")
     transcript = []
+    outcome = {"result": "failed", "evidence": str(run / "evidence.json")}
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
     def start():
         nonlocal process
@@ -55,10 +58,25 @@ def main():
             process.wait(timeout=10)
             process = None
 
+    def invoke(argv, data=None):
+        attempt = run / f"attempt-{len(transcript):03}"
+        attempt.mkdir()
+        request = {"argv": argv, "input_bytes": len(data) if data else 0}
+        (attempt / "request.json").write_text(json.dumps(request, indent=2) + "\n")
+        (attempt / "stdin.bin").write_bytes(data or b"")
+        entry = {"attempt": attempt.name, **request}
+        transcript.append(entry)
+        with (attempt / "stdout.bin").open("xb") as stdout, (attempt / "stderr.bin").open("xb") as stderr:
+            result = subprocess.run(argv, input=data or b"", stdout=stdout, stderr=stderr,
+                                    cwd=run, env=env, timeout=40)
+        entry["exit_code"] = result.returncode
+        (attempt / "outcome.json").write_text(json.dumps(entry, indent=2) + "\n")
+        if result.returncode:
+            raise RuntimeError(f"command failed; inspect {attempt}")
+        return (attempt / "stdout.bin").read_bytes()
+
     def cli(*command, data=None):
-        result = subprocess.run([str(client), *command], input=data, capture_output=True, timeout=40, check=True)
-        transcript.append({"command": command, "stdout": result.stdout.decode(), "stderr": result.stderr.decode()})
-        return result.stdout
+        return invoke([str(client), *command], data)
 
     def read(url, name):
         return cli("read", url, "--state", str(run / name), "--incarnation", "fixture-generation-1")
@@ -76,7 +94,7 @@ def main():
         cli("append", fork, data=b"child\n")
         assert read(fork, "fork.json") == b"alpha\nbeta\nchild\n"
         # Delete the parent's public name; fork prefix must remain readable.
-        with urllib.request.urlopen(urllib.request.Request(root, method="DELETE"), timeout=5) as response:
+        with opener.open(urllib.request.Request(root, method="DELETE"), timeout=5) as response:
             transcript.append({"delete_parent_status": response.status})
         stop()
         start()
@@ -87,8 +105,7 @@ def main():
         cli("status", "--state", str(run / "fork.json"))
         stop()
         for command in [("list", "--json"), ("export", "--output", str(run / "export.json"))]:
-            result = subprocess.run([str(server), "--config", str(config), *command], cwd=run, env=env, capture_output=True, check=True)
-            transcript.append({"server_command": command, "stdout": result.stdout.decode()})
+            invoke([str(server), "--config", str(config), *command])
         files = []
         for path in sorted((run / "store").rglob("*")):
             if path.is_file():
@@ -105,11 +122,17 @@ def main():
                         data = data[4 + size:]
                     entry["length_prefixed_records"] = records
                 files.append(entry)
-        (run / "evidence.json").write_text(json.dumps({"transcript": transcript, "files": files}, indent=2) + "\n")
-        print(json.dumps({"result": "passed", "evidence": str(run / "evidence.json")}, indent=2))
+        outcome.update(result="passed", files=files)
+    except BaseException as error:
+        outcome["error"] = f"{type(error).__name__}: {error}"
+        raise
     finally:
         stop()
         log.close()
+        with (run / "evidence.json").open("x") as evidence:
+            json.dump({**outcome, "transcript": transcript}, evidence, indent=2)
+            evidence.write("\n")
+        print(json.dumps({k: v for k, v in outcome.items() if k != "files"}, indent=2), file=sys.stderr)
 
 
 if __name__ == "__main__":

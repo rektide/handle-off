@@ -30,7 +30,7 @@ struct Reader {
     /// Operator-declared stream generation; the server does not verify it.
     #[arg(long)]
     incarnation: String,
-    /// Maximum complete HTTP response; oversized responses fail without output.
+    /// Maximum complete HTTP response body; oversized responses fail without output.
     #[arg(long, default_value_t = 1048576)]
     max_bytes: u64,
 }

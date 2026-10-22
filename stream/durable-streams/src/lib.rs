@@ -1,7 +1,7 @@
 //! Finite HTTP reads with explicit source binding and durable file checkpoints.
 //! Output is flushed before checkpointing; interruption can replay output.
 
-use anyhow::{Context, Result, bail, ensure};
+use anyhow::{Context, Result, ensure};
 use reqwest::{Method, Url, blocking::Client, header::HeaderMap};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -34,16 +34,28 @@ pub struct Binding {
 
 impl Binding {
     pub fn new(url: &str, incarnation: String, content_type: String, max_bytes: u64) -> Result<Self> {
-        ensure!(!incarnation.trim().is_empty(), "incarnation must not be empty");
-        ensure!(!content_type.trim().is_empty(), "content type must not be empty");
-        ensure!(max_bytes > 0 && max_bytes < u64::MAX, "invalid response bound");
-        Ok(Self {
+        let binding = Self {
             source_url: source_url(url)?.to_string(),
             incarnation,
             content_type,
             max_bytes,
             output_profile: "http-body-v1".into(),
-        })
+        };
+        binding.validate()?;
+        Ok(binding)
+    }
+
+    pub fn validate(&self) -> Result<()> {
+        ensure!(
+            source_url(&self.source_url)?.as_str() == self.source_url,
+            "binding URL must be normalized with source_url"
+        );
+        ensure!(!self.incarnation.trim().is_empty(), "incarnation must not be empty");
+        ensure!(!media_type(&self.content_type).is_empty(), "content type must not be empty");
+        reqwest::header::HeaderValue::from_str(&self.content_type)?;
+        ensure!(self.max_bytes > 0 && self.max_bytes < u64::MAX, "invalid response bound");
+        ensure!(self.output_profile == "http-body-v1", "unsupported output profile");
+        Ok(())
     }
 }
 
@@ -74,6 +86,8 @@ impl HttpStream {
             client: Client::builder()
                 .timeout(Duration::from_secs(30))
                 .redirect(reqwest::redirect::Policy::none())
+                .retry(reqwest::retry::never())
+                .no_proxy()
                 .build()?,
             url: source_url(url)?,
         })
@@ -162,18 +176,20 @@ impl FileReader {
         let state: Checkpoint = serde_json::from_reader(file.take(65537))?;
         ensure!(state.version == 1, "unsupported checkpoint version {}", state.version);
         ensure!(!state.next_offset.is_empty(), "empty checkpoint offset");
+        state.binding.validate()?;
         Ok(Some(state))
     }
 
     /// Explicit replacement, also usable to initialize a reader at a supplied offset.
     pub fn reset(&self, binding: Binding, offset: String) -> Result<Checkpoint> {
+        binding.validate()?;
         ensure!(!offset.is_empty(), "empty reset offset");
         let state = Checkpoint {
             version: 1,
             binding,
             next_offset: offset,
         };
-        self.save(&state)?;
+        self.save(&checkpoint_bytes(&state)?)?;
         Ok(state)
     }
 
@@ -185,30 +201,35 @@ impl FileReader {
                 "checkpoint binding mismatch; inspect status and explicitly reset if intended"
             );
         }
+        binding.validate()?;
         let offset = state.as_ref().map_or("-1", |state| state.next_offset.as_str());
         let batch = HttpStream::new(&binding.source_url)?.read(offset, &binding.content_type, binding.max_bytes)?;
-        output.write_all(&batch.body).context("output failed; checkpoint unchanged")?;
-        output.flush().context("output flush failed; checkpoint unchanged")?;
-        self.save(&Checkpoint {
+        let bytes = checkpoint_bytes(&Checkpoint {
             version: 1,
             binding: binding.clone(),
             next_offset: batch.next_offset.clone(),
         })?;
+        output.write_all(&batch.body).context("output failed; checkpoint unchanged")?;
+        output.flush().context("output flush failed; checkpoint unchanged")?;
+        self.save(&bytes)
+            .context("output flushed but checkpoint save failed; inspect state before retrying")?;
         Ok(batch)
     }
 
-    fn save(&self, state: &Checkpoint) -> Result<()> {
+    fn save(&self, bytes: &[u8]) -> Result<()> {
         let parent = self.path.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
-        let bytes = serde_json::to_vec_pretty(state)?;
-        if bytes.len() > 65536 {
-            bail!("checkpoint exceeds 64 KiB");
-        }
         let mut temp = tempfile::NamedTempFile::new_in(parent)?;
-        temp.write_all(&bytes)?;
-        temp.write_all(b"\n")?;
+        temp.write_all(bytes)?;
         temp.as_file().sync_all()?;
         temp.persist(&self.path).map_err(|error| error.error)?;
         File::open(parent)?.sync_all()?;
         Ok(())
     }
+}
+
+fn checkpoint_bytes(state: &Checkpoint) -> Result<Vec<u8>> {
+    let mut bytes = serde_json::to_vec_pretty(state)?;
+    bytes.push(b'\n');
+    ensure!(bytes.len() <= 65536, "checkpoint exceeds 64 KiB");
+    Ok(bytes)
 }
