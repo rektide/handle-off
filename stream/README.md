@@ -12,6 +12,10 @@ sources:
     title: Existing distinction between resource identity, locator, kind, representation and resolution context
   - resource: /README.md
     title: Existing named resource, bundle, state, transport and custody boundaries
+  - resource: /design/streams/durable-workbench0.gpt61s.md
+    title: Completed HTTP reader and observed external-server fixture
+  - resource: /design/streams/integration0.gpt61s.md
+    title: Completed journal refinement, reusable references and retained installed-process evidence
 ---
 
 # Experimental stream readers and references
@@ -39,6 +43,29 @@ records deterministic checks and real-server evidence separately.
 The [journal CLI guide](systemd/README.md) covers source selectors, opaque cursor
 checkpoints and identity observations. Its [report](/design/streams/journal0.gpt6l.md)
 distinguishes deterministic fixtures from the read-only live journal probe.
+
+## Run the tools
+
+From the repository root:
+
+```sh
+cargo build -p handle-off-stream-durable -p handle-off-stream-journal
+target/debug/durable-workbench --help
+target/debug/ho-journal --help
+python3 stream/systemd/fixtures/installed.py \
+  --client target/debug/ho-journal --scratch .test-agent/journal-integration
+```
+
+The journal fixture needs no live service or journal configuration. It runs fresh
+reader processes against explicit JSONL data, exercises resume through reusable
+`file://` checkpoint references, and retains command/output/checkpoint evidence.
+See its [fixture guide](systemd/fixtures/README.md).
+
+The [HTTP fixture](durable-streams/README.md#library-seam-and-fixtures) additionally
+takes an explicit thesampaton server binary. Both tools keep independent reader
+state in ordinary files. `ho-journal describe --source FILE` explains its selected
+backend and cursor semantics without accessing that backend. HTTP and journal
+positions remain adapter-native; no universal cursor conversion is implemented.
 
 These are source adapters. Existing [handle-off primitives](/README.md) continue
 to own resource IDs, bundles, state metadata, descriptor delivery and custody.
@@ -74,6 +101,17 @@ developing source references. Private URI conventions must be identified as such
 4. Assess the two implementations together. Introduce shared reference/routing
    code only where their actual interfaces establish a useful common contract.
 5. Refine journal handoff and successor detection with a separate integration pass.
+
+These first implementation and integration passes are delivered. The
+[integration addendum](/design/streams/integration0.gpt61s.md) records the 19-test
+journal refinement, installed-process fixture and read-only live probe. The HTTP
+report records eight deterministic tests and its separate server fixture. These
+tools establish inspectable references and restartable reader positions; they do
+not yet implement reader-grant agreements or transfer a live storage engine.
+
+After root-workspace integration, the parent ran
+`cargo nextest run --workspace --all-features`: **143 passed, 1 skipped**.
+The implementers separately reported strict scoped Clippy and formatting checks.
 
 General reader grants, deadlines and lease agreements are tracked independently
 under `handoff-coordination-shared-readers`. Stream models and forks live under

@@ -42,7 +42,8 @@ source inspection is distinct from a running fixture result.
   conservative exact-string resume, explicit unit/invocation selectors and
   read-only host observations. [CLI guide](/stream/systemd/README.md).
 - [Integration assessment](integration0.gpt61s.md): separate native position
-  meanings, cross-source seams and journal fixture/refinement acceptance cases.
+  meanings, implemented journal control-document/output-boundary hardening,
+  reusable references, offline source description and retained fixture evidence.
 
 - [Durable Streams workbench report](durable-workbench0.gpt61s.md): implemented
   HTTP/file-reader boundary, deterministic failure tests and actual external-server
@@ -66,9 +67,10 @@ source inspection is distinct from a running fixture result.
 | `handoff-streams-workbench` | Rust server fixture and enduring HTTP CLI readers |
 | `handoff-streams-journal` | Journal cursor/reference tools and reproducible fixtures |
 | `handoff-streams-crate-fixture` | Alternative `durable-streams` crate assessment |
+| `handoff-streams-source-routing` | Journal integration, reference reuse and offline routing description |
 | `handoff-streams-forks` | Shared-prefix design, independently prioritized |
 
 General grants, deadlines and lease agreements remain under
 `handoff-coordination-shared-readers`; future integrations are under
-`handoff-integrations`. Implementation reports will be linked here as their
-verified results return.
+`handoff-integrations`. The initial reader and journal integration reports above
+record completed checks and bounded observed capabilities.
