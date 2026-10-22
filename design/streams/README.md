@@ -27,6 +27,9 @@ source inspection is distinct from a running fixture result.
 - [Existing Durable Streams storage](storage0.glm53m.md): concrete Caddy and
   TypeScript layouts, metadata, offsets, forks and retention. Explains why a
   stream's physical backing and its public resume position must be distinguished.
+- [Alternative published Rust server](crate-fixture0.gpt6a.md): verified
+  `durable-streams` 0.1.5 archive, actual sealed-segment/placement manifest and
+  a bounded second-fixture proposal; binary-only, not an embeddable library.
 - [Addressable resources](/design/remote-resources/draft0.gpt6a.md): existing
   resource/locator/kind vocabulary and explicit resolution context; a precedent
   for stream references rather than another identity system to replace.
@@ -38,6 +41,8 @@ source inspection is distinct from a running fixture result.
 - [Nodeon tools](nodeon0.gpt6l.md): implemented catalog/scenario tools,
   installed-CLI verification, retained attempts and their reuse limits. Separates
   working APIs from proposed packet/bundle/profile capabilities.
+- [Nodeon review addendum](nodeon-review0.gpt6l.md): independent Luna clarification
+  of definition-order execution, fresh-packet ownership and bounded report reads.
 - [Recovered journal research](journal-prior0.gpt6l.md): native session references
   and existing Cyclrs, Phyllited and Umbriel work. Grounds exact-cursor checks,
   bounded replay and journal-format fixtures while preserving native ownership.
