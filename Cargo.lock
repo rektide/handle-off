@@ -508,6 +508,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "handle-off-stream-journal"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "fs2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "url",
+]
+
+[[package]]
 name = "handle-off-systemd-fdstore"
 version = "0.1.0"
 dependencies = [

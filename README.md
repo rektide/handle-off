@@ -72,7 +72,9 @@ with the reading map in
 The experimental [stream tools](stream/README.md) subtopic adds enduring CLI
 readers and source references. Its first implemented tool is
 [`durable-workbench`](stream/durable-streams/README.md), with source-bound file
-checkpoints and a real external-server fixture. These pre-alpha tools have their
+checkpoints and a real external-server fixture. The
+[`ho-journal`](stream/systemd/README.md) reader adds journal cursor checkpoints,
+explicit service/job selectors and observed incarnation changes. These pre-alpha tools have their
 own [research and evidence map](design/streams/README.md).
 
 | Crate | Description |

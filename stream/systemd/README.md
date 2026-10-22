@@ -1,6 +1,6 @@
 # Journal checkpoint experiment
 
-Pre-alpha standalone crate: `handle-off-stream-journal`, binary `ho-journal`.
+Pre-alpha workspace crate: `handle-off-stream-journal`, binary `ho-journal`.
 Finite source-bound reads with restartable file-backed positions. No async runtime,
 systemd linking, host configuration changes, or activity/history policy required.
 
@@ -104,9 +104,9 @@ make lifecycle/job selection explicit through `UNIT`.
 ## Verify
 
 ```sh
-cargo nextest run
-cargo clippy --all-targets -- -D warnings
-cargo fmt --check
+cargo nextest run -p handle-off-stream-journal
+cargo clippy -p handle-off-stream-journal --all-targets -- -D warnings
+cargo fmt -p handle-off-stream-journal --check
 ```
 
 Fixtures cover unrelated units, manager job target versus manager emitter and

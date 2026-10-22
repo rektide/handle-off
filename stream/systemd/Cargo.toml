@@ -5,8 +5,6 @@ edition = "2024"
 license = "Apache-2.0"
 description = "Experimental source-bound systemd journal checkpoints"
 
-[workspace]
-
 [[bin]]
 name = "ho-journal"
 path = "src/main.rs"

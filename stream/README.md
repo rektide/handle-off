@@ -36,6 +36,10 @@ The [Durable Streams CLI guide](durable-streams/README.md) describes the first
 implemented reader. Its [report](/design/streams/durable-workbench0.gpt61s.md)
 records deterministic checks and real-server evidence separately.
 
+The [journal CLI guide](systemd/README.md) covers source selectors, opaque cursor
+checkpoints and identity observations. Its [report](/design/streams/journal0.gpt6l.md)
+distinguishes deterministic fixtures from the read-only live journal probe.
+
 These are source adapters. Existing [handle-off primitives](/README.md) continue
 to own resource IDs, bundles, state metadata, descriptor delivery and custody.
 The first tools need not transfer a live server or adopt its storage engine.

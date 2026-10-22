@@ -38,6 +38,12 @@ source inspection is distinct from a running fixture result.
 
 ## Fixture and journal precedents
 
+- [Journal implementation](journal0.gpt6l.md): finite journalctl/fixture reader,
+  conservative exact-string resume, explicit unit/invocation selectors and
+  read-only host observations. [CLI guide](/stream/systemd/README.md).
+- [Integration assessment](integration0.gpt61s.md): separate native position
+  meanings, cross-source seams and journal fixture/refinement acceptance cases.
+
 - [Durable Streams workbench report](durable-workbench0.gpt61s.md): implemented
   HTTP/file-reader boundary, deterministic failure tests and actual external-server
   observations. [CLI guide](/stream/durable-streams/README.md).
